@@ -22,7 +22,7 @@ under pressure; git mechanics alone never justify a stage.
 | 2. Fix | [`fix-issue`](../../skills/git/fix-issue/) | An uncommitted, verified change where failing tests preceded the fix, self-reviewed against the issue's acceptance criteria |
 | 3. Ship | [`ship`](../../skills/git/ship/) | An atomic conventional commit referencing the issue (`fixes #N`); contributors push it to their fork and open a PR, while maintainer work stays local for gated integration; merge is a human decision |
 
-Releases follow [release-cut-checklist.md](../history/release-cut-checklist.md) as a
+Releases follow [release-cut-checklist.md](release-cut-checklist.md) as a
 human-gated checklist, not a skill. Worktrees
 ([`worktree-create`](../../skills/git/worktree-create/),
 [`worktree-merge`](../../skills/git/worktree-merge/)),
@@ -105,6 +105,11 @@ npm run test:file -- tests/contracts/<name>.test.ts
 There is no committed weighted-shard or special serial-lane runner. Keep timing
 claims within the focused contract that owns them, and use the full `npm run ci`
 gate before handoff.
+
+The release smoke script `scripts/smoke-real-home.sh` (invoked via
+`npm run smoke:real-home`) tests booting the built CLI binary against a copy of
+the operator settings in a scratch home. An optional `--strict` flag makes doctor
+exit 1 fail the smoke run on failing rows instead of tolerating fleet state.
 
 ## Issue conventions
 
