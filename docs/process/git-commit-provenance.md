@@ -66,6 +66,20 @@ Clio-Evidence: receipt-v20/sha256:<64-character digest>
 Clio does not invent, shorten, or add an unrelated digest. The role trailers do
 not depend on this optional line.
 
+A commit also names the decisions it was made under, one trailer per active
+decision on the session decision board (an `ask_user` answer or a design
+choice the agent recorded with `decide`):
+
+```text
+Clio-Decision: <interviewId>/<key>
+```
+
+The refs come from the sealed receipt's `decisionRefs` at the fleet seam and
+from the live board at the session seam. They are sorted, capped at 32, added
+once, and only refs of the `<id>/<kebab-key>` shape are written. A decision
+trailer records rationale provenance; it is not evidence that the decision was
+correct or that its work was validated.
+
 ## Commit paths and hooks
 
 The deterministic SDLC fleet attributes its plan, code, and documentation
