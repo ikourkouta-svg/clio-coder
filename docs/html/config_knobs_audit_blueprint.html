@@ -107,7 +107,7 @@ Pane settings were introduced after this audit and are intentionally absent from
 <td><code>CLIO_CODER_KV_CACHE_MODE</code></td>
 <td>unset</td>
 <td>retired</td>
-<td>KV-cache quantization mode. Also set internally by the former <code>clio-coder run --kv-cache-mode</code> path.</td>
+<td>KV-cache quantization mode. Also set internally by the former <code>clio-coder run</code> path.</td>
 </tr>
 <tr>
 <td><code>CLIO_CODER_SAMPLING_OVERRIDES</code></td>
@@ -344,7 +344,7 @@ Pane settings were introduced after this audit and are intentionally absent from
 </tr>
 </tbody></table>
 <h2>6. CLI flags that bridge through env vars (Pre-consolidated State)</h2>
-<p><code>clio-coder run --max-context-tokens</code> and <code>--kv-cache-mode</code> (<code>src/cli/run.ts:143-234</code>) and the print-mode sampling flags (<code>src/cli/modes/print.ts:306-333</code>) do not plumb their values through function arguments. They mutate <code>process.env</code> (<code>CLIO_CODER_MAX_CONTEXT_TOKENS</code>, <code>CLIO_CODER_KV_CACHE_MODE</code>, <code>CLIO_CODER_SAMPLING_OVERRIDES</code>), run the command, then restore the previous value in a <code>finally</code>. The env var is the transport between the CLI layer and deep engine code.</p>
+<p><code>clio-coder run --max-context-tokens</code> (<code>src/cli/run.ts:143-234</code>) and the print-mode sampling flags (<code>src/cli/modes/print.ts:306-333</code>) do not plumb their values through function arguments. They mutate <code>process.env</code> (<code>CLIO_CODER_MAX_CONTEXT_TOKENS</code>, <code>CLIO_CODER_KV_CACHE_MODE</code>, <code>CLIO_CODER_SAMPLING_OVERRIDES</code>), run the command, then restore the previous value in a <code>finally</code>. The env var is the transport between the CLI layer and deep engine code.</p>
 <h2>7. Script- and benchmark-only vars (Pre-consolidated State)</h2>
 <table>
 <thead>
