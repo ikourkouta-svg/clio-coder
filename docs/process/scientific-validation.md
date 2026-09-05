@@ -90,8 +90,7 @@ Comparing floating-point values in scientific computations must accommodate roun
 | **`absolute`** | $|val - ref| \le absolute$ | Additive difference check. Used when reference value is close to `0`. |
 | **`ulp`** | $StepsBetween(val, ref) \le ulp$ | Unit in the Last Place. Measures floating-point representation steps. |
 
-> [!NOTE]
-> Clio core does not currently execute tolerance comparisons and does not apply a default numerical tolerance. Put defaults directly in project validators or contract text.
+Tolerances become executable through a `kind: numeric-compare` entry in `.clio-coder/verifiers.yaml` (catalog version 2). The entry's `command` prints a JSON object of `string -> number | number[]` on stdout, `reference` names a repository-relative JSON file of the same shape, and `tolerance` names at least one of `relative`, `absolute`, or `ulp`. A value passes only when it satisfies every tolerance given; a key missing on either side fails with the key named, arrays compare elementwise and fail on length mismatch, and any `NaN` or infinity fails. The report lists each key's worst deviation and which tolerance it failed, and it is recorded on the `verify` result and on the host-verification check of a dispatch receipt. Clio applies no default tolerance: the catalog entry states it. `clio-coder verifiers author` proposes one such entry for every contract artifact that declares `numerical_tolerances`, with the command left for the operator to fill, so nothing runs until the operator confirms an exact argv. A `kind: perf-budget` entry judges the command's wall time the same way against a `budget` or a recorded baseline; see [Tool usage](../guide/tool-usage.md#project-verifier-catalog).
 
 ---
 
