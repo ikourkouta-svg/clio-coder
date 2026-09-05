@@ -106,6 +106,11 @@ There is no committed weighted-shard or special serial-lane runner. Keep timing
 claims within the focused contract that owns them, and use the full `npm run ci`
 gate before handoff.
 
+The release smoke script `scripts/smoke-real-home.sh` (invoked via
+`npm run smoke:real-home`) tests booting the built CLI binary against a copy of
+the operator settings in a scratch home. An optional `--strict` flag makes doctor
+exit 1 fail the smoke run on failing rows instead of tolerating fleet state.
+
 ## Issue conventions
 
 - **Title**: conventional tag plus imperative summary (`fix: memory overlay
