@@ -76,9 +76,10 @@ Clio-Decision: <interviewId>/<key>
 
 The refs come from the sealed receipt's `decisionRefs` at the fleet seam and
 from the live board at the session seam. They are sorted, capped at 32, added
-once, and only refs of the `<id>/<kebab-key>` shape are written. A decision
-trailer records rationale provenance; it is not evidence that the decision was
-correct or that its work was validated.
+once, and only refs of the `<id>/<key>` shape are written, where the key is an
+operator `snake_case` key or an agent `kebab-case` key. A decision trailer
+records rationale provenance; it is not evidence that the decision was correct
+or that its work was validated.
 
 ## Commit paths and hooks
 
