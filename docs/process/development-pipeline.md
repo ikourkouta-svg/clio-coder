@@ -22,7 +22,7 @@ under pressure; git mechanics alone never justify a stage.
 | 2. Fix | [`fix-issue`](../../skills/git/fix-issue/) | An uncommitted, verified change where failing tests preceded the fix, self-reviewed against the issue's acceptance criteria |
 | 3. Ship | [`ship`](../../skills/git/ship/) | An atomic conventional commit referencing the issue (`fixes #N`); contributors push it to their fork and open a PR, while maintainer work stays local for gated integration; merge is a human decision |
 
-Releases follow [release-cut-checklist.md](../history/release-cut-checklist.md) as a
+Releases follow [release-cut-checklist.md](release-cut-checklist.md) as a
 human-gated checklist, not a skill. Worktrees
 ([`worktree-create`](../../skills/git/worktree-create/),
 [`worktree-merge`](../../skills/git/worktree-merge/)),
