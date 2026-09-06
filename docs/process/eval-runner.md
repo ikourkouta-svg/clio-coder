@@ -520,3 +520,7 @@ The current reference `mini` endpoint is the llama.cpp router at `192.168.86.141
 ## Task Outcome Measurement (`verify.measure`)
 
 Task outcome commands declared under `verify.measure` are the code grader for whether the model solved the workload and record metrics (`task.solved`, `task.exitCode`). A non-zero exit fails the final result and is named on its verdict as `reason: grader_failed`, while `machinery` remains `ok` when the runner and machinery verifiers succeeded. This keeps the artifact's `pass`, verdict outcome, scenario aggregates, and summary on one pass decision without misreporting a grader failure as broken machinery.
+
+## Artifact reporting and comparison
+
+Eval runs print a report command for custom output artifacts. `clio-coder eval report --artifact <path>` reads the original artifact with strict provenance validation and does not import it into the store. Comparison aligns jointly declared target/model variations while preserving both route identities, rejects ambiguous route groups, and retains execution-envelope differences. Compact mismatch and hard-gate identities omit runner attachments; full artifact reports retain them.
