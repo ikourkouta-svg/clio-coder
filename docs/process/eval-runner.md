@@ -408,6 +408,17 @@ classifications: `improved`, `regressed`, `unchanged`, or `incomparable` for the
 mean and for variability. Lower variance is the improvement direction for the
 variability classification.
 
+When both artifacts declare `target` or `wireModel` in `matrix.dimensions`,
+the corresponding target id or model id is omitted from scenario grouping.
+This aligns a single baseline route with a single candidate route before
+checking their execution envelopes. Reports preserve both route identities
+as `baselineTargets` and `candidateTargets`; the existing `target` remains the
+baseline route, or the candidate route when the baseline group is missing.
+If grouping would combine multiple distinct target/model routes on either
+side, comparison fails with `behavioralMetrics.ambiguousRouteGroup` instead
+of treating the pooled trials as comparable. Repeats of the same route still
+form one distribution.
+
 Correctness and safety rows are hard. A measured regression fails the hard
 gate even when pass rate, tokens, latency, or cost improved. Losing a
 correctness or safety measurement that existed in the baseline is also a hard
