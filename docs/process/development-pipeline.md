@@ -74,10 +74,10 @@ replace Clio copies without crossing the product boundary:
 
 1. Read the release notes or package changelogs for `pi-ai`, `pi-agent-core`,
    and `pi-tui`.
-2. Run `npm run pi:surface-diff`. A changed or removed symbol that Clio imports
+2. Run `pnpm run pi:surface-diff`. A changed or removed symbol that Clio imports
    is an error; a new export is review input.
 3. Run the focused contracts in the
-   [Pi regression net](../architecture/pi-boundary.md#pi-regression-net), then run `npm run ci`.
+   [Pi regression net](../architecture/pi-boundary.md#pi-regression-net), then run `pnpm run ci`.
 4. Walk Pi's fixed-issue list against the
    [Pi SDK boundary table](../architecture/pi-boundary.md). For every fix in a surface Clio
    still owns, either delete Clio's copy in favor of Pi or add a dated reason
@@ -86,28 +86,28 @@ replace Clio copies without crossing the product boundary:
    worth a Clio ticket.
 
 After review, regenerate `docs/pi-surface.json` with
-`npm run pi:surface-snapshot`, inspect the symbol and signature changes, and
+`pnpm run pi:surface-snapshot`, inspect the symbol and signature changes, and
 commit the dependency pins, snapshot, boundary notes, and proving contracts
-together. `npm run lint` invokes the surface check automatically when the
+together. `pnpm run lint` invokes the surface check automatically when the
 installed Pi versions differ from the checked-in snapshot.
 
 ## Test lanes
 
-`npm test` uses Node's test runner over every `tests/contracts/*.test.ts` and
+`pnpm test` uses Node's test runner over every `tests/contracts/*.test.ts` and
 `tests/smoke/*.test.ts` file, with `tests/harness/tmp-root.ts` preloaded to
 isolate test state. Its `pretest` hook builds `dist/` when the CLI bundle is
 absent. Run one focused file while iterating with:
 
 ```bash
-npm run test:file -- tests/contracts/<name>.test.ts
+pnpm run test:file tests/contracts/<name>.test.ts
 ```
 
 There is no committed weighted-shard or special serial-lane runner. Keep timing
-claims within the focused contract that owns them, and use the full `npm run ci`
+claims within the focused contract that owns them, and use the full `pnpm run ci`
 gate before handoff.
 
 The release smoke script `scripts/smoke-real-home.sh` (invoked via
-`npm run smoke:real-home`) tests booting the built CLI binary against a copy of
+`pnpm run smoke:real-home`) tests booting the built CLI binary against a copy of
 the operator settings in a scratch home. An optional `--strict` flag makes doctor
 exit 1 fail the smoke run on failing rows instead of tolerating fleet state.
 
@@ -143,7 +143,7 @@ or bumped; the milestone closes when the tag is published.
 ## Dogfooding setup
 
 The marketplace copy under `skills/git/` is the committed source of truth,
-pinned in `skills/registry.yaml` by `npm run skills:pin`. Runtime roots are
+pinned in `skills/registry.yaml` by `pnpm run skills:pin`. Runtime roots are
 gitignored, so each developer installs locally:
 
 ```bash
@@ -152,6 +152,6 @@ cp -r skills/git/file-ticket .claude/skills/       # Claude Code
 ```
 
 The other pipeline skills are model-invoked from the marketplace catalog the
-same way. When a skill changes, re-run `npm run skills:pin` and re-copy;
+same way. When a skill changes, re-run `pnpm run skills:pin` and re-copy;
 drift between an installed copy and the pinned hash surfaces a warning at
 activation.

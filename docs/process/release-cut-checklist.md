@@ -43,10 +43,10 @@ Run deterministic local checks on the candidate commit before requesting authori
 1. Execute the release gate:
 
    ```bash
-   npm run ci:release
+   pnpm run ci:release
    ```
 
-   This gate runs `npm run ci` followed by `node scripts/check-release.mjs`. It verifies
+   This gate runs `pnpm run ci` followed by `node scripts/check-release.mjs`. It verifies
    type checking, Biome formatting, hygiene rules, architecture boundary invariants,
    the build, the contract and smoke test suites, trace-viewer tests, and dist integrity.
    The packaging audit checks executable entry shebangs, ensures forbidden files like
@@ -62,7 +62,7 @@ Run deterministic local checks on the candidate commit before requesting authori
 3. Run the real-home smoke test against the operator configuration:
 
    ```bash
-   npm run smoke:real-home -- --target <id> --strict
+   pnpm run smoke:real-home --target <id> --strict
    ```
 
    This runs `scripts/smoke-real-home.sh` using a copy of operator settings in a scratch
@@ -91,7 +91,7 @@ Run deterministic local checks on the candidate commit before requesting authori
 
 Before touching any remote ref, summarize the candidate for maintainer review:
 - Candidate commit SHA
-- Results of `npm run ci:release`
+- Results of `pnpm run ci:release`
 - Verification output from real-home smoke and installed package testing
 - Changelog contents and target npm version
 
@@ -143,7 +143,7 @@ an immutable package. Do not execute any of them without explicit maintainer aut
 
 4. Pushing the tag triggers `.github/workflows/release.yml`. The workflow:
    - Verifies the tag matches `package.json`.
-   - Runs `npm run ci:release` on the tagged commit.
+   - Runs `pnpm run ci:release` on the tagged commit.
    - Packs the release tarball with `npm pack`.
    - Extracts the version changelog section from `CHANGELOG.md`.
    - Creates the GitHub Release with the tarball attached using `gh release create`.
@@ -173,7 +173,7 @@ Publishing to npm is a manual maintainer step performed from the tagged commit.
    ```
 
    The `prepublishOnly` lifecycle script sets `CLIO_CODER_RELEASE_CONTEXT=publish` and
-   re-executes `npm run ci:release` as a mandatory release-mode verification gate before
+   re-executes `pnpm run ci:release` as a mandatory release-mode verification gate before
    files are uploaded. When publishing a pre-release channel, append `--tag <channel>`.
 
 ## Part 7: Post-Publish Verification and Branch Closeout

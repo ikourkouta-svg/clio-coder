@@ -10,7 +10,7 @@ checkout or object store.
 Run a private suite from this source checkout with:
 
 ```sh
-npm run build
+pnpm run build
 clio-coder eval run --suite <external-path> --clio-coder-entry dist/cli/index.js
 ```
 
