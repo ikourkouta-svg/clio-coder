@@ -13,18 +13,21 @@ canonical remote state or publishes immutable packages.
 ## Part 1: Candidate Preparation on a Local Compact Branch
 
 Maintainers prepare release candidates on a local-only compact branch named after
-the version without punctuation, such as `v044` for version `0.4.4`. Dotted branch
-names like `v0.4.4` are forbidden because dotted names belong exclusively to immutable
+the version without punctuation, such as `v046` for version `0.4.6`. Dotted branch
+names like `v0.4.6` are forbidden because dotted names belong exclusively to immutable
 tags. The canonical repository hosts only `main`, and no release candidate branch is
 ever pushed to canonical origin.
 
 1. Ensure the working tree is clean and updated from canonical origin:
 
    ```bash
-   git checkout -b v044 origin/main
+   git checkout -b v046 origin/main
    ```
 
-2. Update `version` in `package.json` to the release version.
+2. Update `version` in `package.json` and `assets/acp-registry/agent.json` to the
+   release version. Update the README's source-install tag and remove any
+   development-only notices. Keep historical release records, protocol schema
+   versions, dependency versions, and migration fixtures unchanged.
 
 3. Retitle the active changelog section in `CHANGELOG.md` from `## Unreleased` to
    `## <version> - YYYY-MM-DD`. The release gate in `scripts/check-release.mjs` requires
@@ -112,7 +115,7 @@ an immutable package. Do not execute any of them without explicit maintainer aut
 
    ```bash
    git checkout main
-   git merge --ff-only v044
+   git merge --ff-only v046
    ```
 
 4. Verify that local `main` matches the reviewed candidate SHA exactly.
@@ -149,6 +152,15 @@ an immutable package. Do not execute any of them without explicit maintainer aut
    - Creates the GitHub Release with the tarball attached using `gh release create`.
 
 5. Inspect the GitHub Actions workflow run and confirm the GitHub release is published.
+
+6. Reconcile the release milestone against the tagged commits and each ticket's
+   acceptance evidence. `Fixes #123` or `Resolves #123` in a commit closes that
+   ticket when the commit reaches default-branch `main`; a bare `#123`, changelog
+   mention, tag, or GitHub release does not. Verify the resulting issue state.
+   Explicitly close completed tickets missed by automatic closure and retain
+   their implementing commit and validation references. Carry incomplete work
+   forward with its remaining criteria, then close the reconciled milestone.
+   Never infer completion from a release-note mention alone.
 
 ## Part 6: Package Publication to npm
 
@@ -195,7 +207,7 @@ Publishing to npm is a manual maintainer step performed from the tagged commit.
 3. Remove the local compact candidate branch:
 
    ```bash
-   git branch -d v044
+   git branch -d v046
    ```
 
    The canonical repository remains in its steady state containing only `main` and immutable tags.

@@ -59,7 +59,7 @@ closed. The reusable [`branch-closeout`](../../skills/git/branch-closeout/) skil
    `refs/heads/main`; every survivor needs an owner and purpose.
 
 Maintainer release candidates are local-only and use a compact branch name
-that cannot collide with their tag: branch `v043`, tag `v0.4.3`. Gate the exact
+that cannot collide with their tag: branch `v046`, tag `v0.4.6`. Gate the exact
 candidate, require fetched `origin/main` to be its ancestor, fast-forward local
 `main`, fetch again, and push only `refs/heads/main:refs/heads/main` with
 explicit authorization. After CI passes, push only the fully qualified
