@@ -12,7 +12,7 @@ treated as current operator guidance.
 ## Headline
 
 - Markdown pages audited: **51**.
-- Dedicated HTML blueprints now present: **51**.
+- Dedicated HTML blueprints present after that audit: **51**.
 - Pages without a blueprint: **0**. Every Markdown page has one visual
   counterpart, so there are no exception reasons to record.
 - Pages with one or more source disagreements at `ff56ea3e`: **42**.
