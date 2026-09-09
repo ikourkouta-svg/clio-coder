@@ -79,6 +79,7 @@ Classify claims clearly:
 | [eval-runner.md](eval-runner.md) | `src/domains/eval/**`, `src/cli/eval.ts` | Local YAML eval tasks, dual token accountings (`tokens.*` wire vs `receiptUsage.*` journal), fail-closed null totals, EvalArtifactV4 format, `verify.measure` task outcome recording. |
 | [evals-internal.md](evals-internal.md) | `src/domains/eval/**`, `evals/**` | Private suite handling, measurement design, and the boundary between shipped reference inputs and external campaigns. |
 | [extensions-and-sharing.md](../guide/extensions-and-sharing.md) | `src/domains/extensions/**`, `src/domains/resources/**`, `src/domains/share/**`, `src/cli/extensions.ts`, `src/cli/share.ts` | Prompt, skill, agent, fleet, and reserved theme resources; extension manifests; portable share archives. |
+| [library.md](../architecture/library.md) | `src/domains/plugins/**`, `src/domains/resources/library.ts`, `src/cli/library.ts` | Package kinds, catalog resolution, integrity, scope selection, and trust. |
 | [resource-library.md](../guide/resource-library.md) | `src/domains/resources/library.ts`, `src/cli/library.ts` | Catalog schemas, private and remote source policy, checksum pins, resource installation, and update checks. |
 | [skills-marketplace.md](../guide/skills-marketplace.md) | `src/interactive/overlays/library.ts`, `src/interactive/overlays/library-tabs.ts`, `src/domains/resources/skills/marketplace.ts` | Skills marketplace discovery through library overlays, catalog inspection, install actions, publishing flow. |
 | [plugins.md](../guide/plugins.md) | `src/domains/plugins/**`, `src/domains/resources/library.ts`, `src/cli/library.ts` | Portable domain bundles, library installation, enable/disable states, drift detection, pins, and package lifecycle. |
@@ -140,9 +141,8 @@ Clio Coder maintains two complementary documentation formats:
 
 Blueprint coverage is explicit rather than inferred from document style. The
 page-level audit lives in
-[`documentation-coverage.md`](documentation-coverage.md). All 58 canonical Markdown pages
-have a dedicated blueprint. More library pages may arrive as development proceeds,
-requiring an inventory refresh during release cuts. `docs/html/index.html` groups those counterparts by
+[`documentation-coverage.md`](documentation-coverage.md). Every canonical Markdown page
+has a dedicated blueprint. Recheck the complete inventory during each release cut. `docs/html/index.html` groups those counterparts by
 the same Guide, Architecture, Process, and History tree, while a source meta tag
 provides the one-to-one machine-readable mapping. Every mapping must remain
 unique, complete, and free of orphaned Markdown or HTML pages.
