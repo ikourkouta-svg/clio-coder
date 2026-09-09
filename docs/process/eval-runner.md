@@ -14,6 +14,9 @@ Source of truth: [src/domains/eval/](../../src/domains/eval/) and [src/cli/eval.
 The CLI commands under `clio-coder eval` support running, validating, reporting, comparing, and gating evaluation suites.
 
 ```bash
+clio-coder eval validate --package <path|kind:name> [--eval <name>] [--user|--project]
+clio-coder eval run --package <path|kind:name> [--eval <name>] [--user|--project] [--out <path>]
+clio-coder eval skill <name|path> [--scenario <id>] [--json]
 clio-coder eval validate --suite <suite.yaml>
 clio-coder eval run --suite <suite.yaml> [--trials <n>] [--target <id>] [--model <id>] [--out <path>] [--clio-coder-entry <path>]
 clio-coder eval run --task-file <tasks.yaml> [--repeat <n>] [--out <path>] [--clio-coder-entry <path>]
@@ -24,8 +27,9 @@ clio-coder eval inventory --json
 ```
 
 ### Command Roles
-* **`validate`**: Validates the structure and constraints of a Suite v2 YAML file without executing it.
-* **`run`**: Runs a Suite v2 (via `--suite`) or a compatibility v1 task file (via `--task-file`). Outputs a text summary and writes an eval artifact under `<dataDir>/evals/` and evidence under `<dataDir>/evidence/eval-<evalId>/`.
+* **`validate`**: Validates the structure and constraints of a Suite v2 YAML file (via `--suite`) or package evaluations (via `--package <path|kind:name> [--eval <name>]`) without executing them.
+* **`run`**: Runs a Suite v2 (via `--suite`), a compatibility v1 task file (via `--task-file`), or a packaged evaluation (via `--package <path|kind:name> [--eval <name>]`). Outputs a text summary and writes an eval artifact under `<dataDir>/evals/` and evidence under `<dataDir>/evidence/eval-<evalId>/`.
+* **`skill`**: Evaluates an individual skill directory or catalog entry against its baseline scenarios declared in `evals.md`.
 * **`report`**: Formats and prints a report from a saved `evalId`. Supports multiple `--format` outputs:
   * `text` (default): Human-readable stdout summary.
   * `json`: Raw JSON structure of the artifact.
@@ -41,7 +45,8 @@ Exit codes:
 | Command | Success | Failure |
 | --- | --- | --- |
 | `eval validate` | `0` when validation passes | `2` for validation issues |
-| `eval run` | `0` when all task repetitions pass | `1` when any task fails, `2` for invalid configs |
+| `eval run` | `0` when all task repetitions pass | `1` when any task/gate fails (including package evals), `2` for invalid configs or load errors |
+| `eval skill` | `0` when all scenarios pass | `1` for failures/regressions, `3` for unmeasured harness state or evidence errors, `2` for invalid arguments |
 | `eval report` | `0` when artifact loads | `1` if artifact cannot be read, `2` for invalid ID |
 | `eval compare` | `0` when both artifacts compare and the behavioral hard gate passes | `1` for a hard regression or unreadable artifact, `2` for invalid ID |
 | `eval gate` | `0` when correctness, safety, and hard threshold assertions pass | `1` for hard failures, unreadable inputs, and malformed threshold files; `2` for an invalid eval ID or usage error |
