@@ -18,27 +18,27 @@ under pressure; git mechanics alone never justify a stage.
 
 | Stage | Skill | Output |
 | --- | --- | --- |
-| 1. File | [`file-ticket`](../../skills/git/file-ticket/) | A labeled GitHub issue with evidence and acceptance criteria |
-| 2. Fix | [`fix-issue`](../../skills/git/fix-issue/) | An uncommitted, verified change where failing tests preceded the fix, self-reviewed against the issue's acceptance criteria |
-| 3. Ship | [`ship`](../../skills/git/ship/) | An atomic conventional commit referencing the issue (`fixes #N`); contributors push it to their fork and open a PR, while maintainer work stays local for gated integration; merge is a human decision |
+| 1. File | [`file-ticket`](../../library/skills/git/file-ticket/) | A labeled GitHub issue with evidence and acceptance criteria |
+| 2. Fix | [`fix-issue`](../../library/skills/git/fix-issue/) | An uncommitted, verified change where failing tests preceded the fix, self-reviewed against the issue's acceptance criteria |
+| 3. Ship | [`ship`](../../library/skills/git/ship/) | An atomic conventional commit referencing the issue (`fixes #N`); contributors push it to their fork and open a PR, while maintainer work stays local for gated integration; merge is a human decision |
 
 Releases follow [release-cut-checklist.md](release-cut-checklist.md) as a
 human-gated checklist, not a skill. Worktrees
-([`worktree-create`](../../skills/git/worktree-create/),
-[`worktree-merge`](../../skills/git/worktree-merge/)),
-[`branch-closeout`](../../skills/git/branch-closeout/),
-[`resolve-merge-conflicts`](../../skills/git/resolve-merge-conflicts/), and
-[`tdd`](../../skills/coding/tdd/) are à-la-carte tools reached for when the
+([`worktree-create`](../../library/skills/git/worktree-create/),
+[`worktree-merge`](../../library/skills/git/worktree-merge/)),
+[`branch-closeout`](../../library/skills/git/branch-closeout/),
+[`resolve-merge-conflicts`](../../library/skills/git/resolve-merge-conflicts/), and
+[`tdd`](../../library/skills/coding/tdd/) are à-la-carte tools reached for when the
 situation calls for them, not stages every change passes through. An RCA
 written as the closing comment on the issue (`rca` label) is an artifact of
 hard bugs, not a mandatory toll booth. Batch ticket creation from a PRD
-bypasses stage 1 and uses [`backlog`](../../skills/planning/backlog/)
+bypasses stage 1 and uses [`backlog`](../../library/skills/planning/backlog/)
 instead; everything downstream is identical.
 
 ## Closeout
 
 A merged PR is not operationally finished until its local scaffolding is
-closed. The reusable [`branch-closeout`](../../skills/git/branch-closeout/) skill automates this verification and teardown safely. After the human merge decision:
+closed. The reusable [`branch-closeout`](../../library/skills/git/branch-closeout/) skill automates this verification and teardown safely. After the human merge decision:
 
 1. Fetch and prune, confirm the PR's merged state, and identify the resulting
    commit on `origin/main`. Direct ancestry proves an ordinary merge; a squash
@@ -142,13 +142,13 @@ or bumped; the milestone closes when the tag is published.
 
 ## Dogfooding setup
 
-The marketplace copy under `skills/git/` is the committed source of truth,
-pinned in `skills/registry.yaml` by `pnpm run skills:pin`. Runtime roots are
+The marketplace copy under `library/skills/git/` is the committed source of truth,
+pinned in `library/skills/registry.yaml` by `pnpm run skills:pin`. Runtime roots are
 gitignored, so each developer installs locally:
 
 ```bash
-cp -r skills/git/file-ticket .clio-coder/skills/   # Clio Coder
-cp -r skills/git/file-ticket .claude/skills/       # Claude Code
+cp -r library/skills/git/file-ticket .clio-coder/skills/   # Clio Coder
+cp -r library/skills/git/file-ticket .claude/skills/       # Claude Code
 ```
 
 The other pipeline skills are model-invoked from the marketplace catalog the

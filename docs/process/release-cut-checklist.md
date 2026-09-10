@@ -78,6 +78,10 @@ Run deterministic local checks on the candidate commit before requesting authori
    npm pack --dry-run
    ```
 
+   Confirm the complete `library/` tree and `.claude-plugin/marketplace.json`
+   accompany `dist/`, `src/`, and the documented runtime resources. The repository's
+   `.agents/skills/` symlinks are clone conveniences and are not tarball contents.
+
 5. Validate an installed tarball in a clean temporary directory:
 
    Create a temporary directory, pack the tarball, install it via npm, and verify

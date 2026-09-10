@@ -62,7 +62,7 @@ exit. This keeps diagnostic output from corrupting the temporary shell without
 changing the measured endpoints.
 
 ```bash
-CLIO_CODER_RENDER_TRACE=/tmp/clio-render.jsonl \
+CLIO_CODER_RENDER_TRACE=/tmp/clio-coder-render.jsonl \
 CLIO_CODER_TRACE_BOOT=1 \
 CLIO_CODER_INTERACTIVE=1 \
 node dist/cli/index.js
