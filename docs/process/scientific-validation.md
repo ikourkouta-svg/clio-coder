@@ -122,3 +122,26 @@ Clio Coder integrates scientific validation contracts directly into its safety m
 - **High-Rigor Gate Requirements**: Once the rigor is `high`, the finish gate is active. It engages on a settled `turn_end` only when the recent window contains successful workspace mutation evidence and no validation evidence or `limitation` receipt. The window is entries since the last user message, capped at 80 entries:
   - Clio issues a `request_continuation` middleware effect to keep the session running.
   - Clio injects a dynamic warning reminder (`HIGH_RIGOR_REVALIDATION_MESSAGE`) instructing the agent to run a verification command or to call `limitation` before it can conclude the turn.
+
+## Verification boundaries and limitation receipts
+
+File readback establishes artifact inspection, not executed scientific validation. When an agent or worker modifies files but cannot execute the outstanding checks with its admitted tools and approved scope:
+
+1. **The generic `limitation` tool**:
+   - Clio provides the pure canonical `limitation` tool (`src/tools/limitation.ts`), recording a `limitation` tool_call and tool_result receipt in the session ledger.
+   - Arguments:
+     - `scope` (required string): What could not be verified, in one sentence.
+     - `reason` (required enum): One of `no-runner`, `blocked`, `out-of-scope`, `environment`, or `other`.
+     - `paths` (optional array of strings): Repository-relative file paths left unverified.
+   - A prose disclaimer or text summary in conversation is not a limitation receipt; only a successful `limitation` tool call registers a typed receipt in the session ledger.
+
+2. **Recipe instructions vs generic harness**:
+   - Bundled scientific recipes (such as Materio research agents in `library/plugins/materio`) explicitly instruct workers via `<clio_verification_boundary>` in their recipe bodies to call `limitation` when external checks cannot run. This boundary instruction is authored recipe content, not an unconditional harness envelope injected into every worker.
+
+3. **Finish gate enforcement**:
+   - At high rigor (such as when a valid `validation.yaml` contract is present), the finish gate monitors workspace mutations within the recent active turn window (up to 80 entries since the last user message).
+   - If mutating tool calls occurred in that window without executed validation evidence or a `limitation` receipt, `finishContractRegistration` (`src/domains/safety/finish-contract-registration.ts`) emits a `request_continuation` middleware effect accompanied by a reminder (`HIGH_RIGOR_REVALIDATION_MESSAGE`). At normal rigor, it emits an advisory reminder without blocking.
+   - The gate checks structural evidence presence; it does not grade the empirical correctness of scientific code. Runtime turn budgets, deadline limits, operator cancellation, and tool failures still apply.
+   - A limitation receipt never converts missing or failing checks into a pass; it formally records the limitation so callers and operators know the scientific result is incomplete.
+   - Verified by contracts `tests/contracts/materio-plugin.test.ts` and `tests/contracts/safety-policy-remediation.test.ts`.
+

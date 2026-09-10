@@ -98,3 +98,30 @@ The source-alignment pass corrected all findings across the 42 affected
 Markdown pages. The table preserves what the audit found at `ff56ea3e`; it does
 not describe outstanding Markdown debt. Every HTML blueprint now renders the
 complete corrected counterpart and identifies its Markdown source explicitly.
+
+## Clio Coder 0.4.7 documentation refresh
+
+The 0.4.7 pass was a source-alignment pass, not a re-measurement of the 0.4.2
+audit above, whose table stands as the historical record.
+
+Pages carrying new or rewritten sections in this pass: `README.md`,
+`architecture/context-engine.md`, `architecture/library.md`,
+`architecture/model-catalog.md`, `architecture/pi-boundary.md`,
+`architecture/safety-model.md`, `architecture/session-lifecycle.md`,
+`architecture/tui-design.md`, `architecture/worker-context.md`,
+`guide/commands-and-modes.md`, `guide/configuration-reference.md`,
+`guide/extensions-and-sharing.md`, `guide/harness-extensions.md`,
+`guide/interop.md`, `guide/plugins.md`, `guide/resource-library.md`,
+`guide/skills-marketplace.md`, and `process/scientific-validation.md`, each with
+its paired blueprint.
+
+Two standing rules this pass reaffirmed. Every asserted behavior is anchored to
+the function or contract that implements it, named inline, rather than inferred
+from a UI label or a neighbouring paragraph. And a value that appears only in a
+test fixture is not a product default: the compiled defaults in
+`src/core/defaults.ts` are the authority for what ships unset.
+
+Per-run verification evidence for the refresh lives with the maintenance records
+for that sprint, not in this page. This page tracks documentation coverage, and
+run logs age out of usefulness faster than the docs they checked.
+
