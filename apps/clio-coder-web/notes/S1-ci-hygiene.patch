@@ -1,5 +1,0 @@
---- a/scripts/check-hygiene.ts
-+++ b/scripts/check-hygiene.ts
-@@ -441 +441 @@
--		"pnpm run typecheck && pnpm run lint && pnpm run build && pnpm run test && pnpm run test:trace-viewer",
-+		"pnpm run typecheck && pnpm run lint && pnpm run build && pnpm run test && pnpm run test:trace-viewer && pnpm run test:web",
