@@ -6,7 +6,7 @@ This file is the executable plan. A fresh coding session executes it without the
 
 ## 0. Baseline and how to start a session
 
-**Implementation status:** all 15 S slices are done. Required PWA/background availability is committed in `787f3323`; the verified three-entry packaging rehearsal is committed in `b2d84375`. R1 is next and has not started. Its measured package-budget issue and exact integration checklist are recorded below and in README.
+**Implementation status:** all 15 S slices are done. Required PWA/background availability is committed in `787f3323`; the verified three-entry packaging rehearsal is committed in `b2d84375`. UI polish and the npm bootstrap installer are complete (`c149fda7`, `4427fdc0`). R1 is complete and passes the full release gate; its actual installed-package test replaces the S10 rehearsal. R3 docs consolidation is next under the explicit operator correction; R2 and R4 remaining integration items are explicit below.
 
 **Current operator authorization (2026-09-11).** Continue through all S slices, including lettered slices, until implemented, tested, and verified. This overrides the one-slice-per-session stopping rule below; retain acceptance checks and a ledger entry for each slice. The operator subsequently authorized atomic local commits as work completes: "commit atomically as you go. the rule is no push". This overrides earlier no-commit instructions. Latest steering prioritizes REST API coverage and parity for future GUI sessions. Keep `apps/workbench/`, disconnect it from builds, publication, and gates; remove the absorbed trace viewer and its active references. These specific root integration changes are authorized exceptions; other R-slice work, push, publication, and branch changes remain unauthorized. Keep temporary reports, audits, screenshots, and prompts outside the checkout; record durable implementation progress in this existing ledger. The operator moved the unrelated docs audit to ignored `.superpowers/`; recheck hygiene without the old baseline exception if it now passes.
 
@@ -28,7 +28,7 @@ This file is the executable plan. A fresh coding session executes it without the
 
 ## 1. Accepted architecture in one screen
 
-- One Node process (`clio-coder web` at v0.5.0; `node --import tsx server/main.ts` from the checkout now) on `127.0.0.1`, foreground by default with Ctrl+C to stop, or explicitly installed as a Linux user service for PWA availability. Ordinary CLI, TUI, and ACP startup never starts it. Explicit app launch actions, including `clio-coder docs` after R3, may start it.
+- One Node process (`clio-coder web` at v0.4.8; `node --import tsx server/main.ts` from the checkout now) on `127.0.0.1`, foreground by default with Ctrl+C to stop, or explicitly installed as a Linux user service for PWA availability. Ordinary CLI, TUI, and ACP startup never starts it. Explicit app launch actions, including `clio-coder docs` after R3, may start it.
 - Hono 4 on `@hono/node-server`. TypeBox on the root's `typebox` line. A **route table** in `contracts/routes.ts` is the single source of truth for validation, OpenAPI, and the typed client.
 - REST for commands and queries; one global SSE stream with `{v, epoch, seq}` envelopes, a 4,096-entry ring, `hello` and `resync` events, snapshot headers `X-Clio-Epoch` and `X-Clio-Seq`; resource SSE streams for live trace tails.
 - Two `worker_threads` domain workers (reads, ops) host every blocking adapter that imports `src/**`. Bounded queues (64), per-call deadlines, no interruption of synchronous work, truthful `cancellable` flags.
@@ -40,7 +40,7 @@ This file is the executable plan. A fresh coding session executes it without the
 
 ## 2. Naming
 
-Package `@iowarp/clio-coder-web`. Directory `apps/clio-coder-web`. Product name `Clio Coder`. Command `clio-coder web` (v0.5.0). State `<state>/web/`. Log prefix `[clio-coder:web]`. The product, package, command, and state directory are not named workbench, GUI, or daemon; the words themselves are fine in prose.
+Package `@iowarp/clio-coder-web`. Directory `apps/clio-coder-web`. Product name `Clio Coder`. Command `clio-coder web` (v0.4.8). State `<state>/web/`. Log prefix `[clio-coder:web]`. The product, package, command, and state directory are not named workbench, GUI, or daemon; the words themselves are fine in prose.
 
 ## 3. Boundaries
 
@@ -65,7 +65,7 @@ All files under `apps/clio-coder-web/`. Root imports are written against real mo
 
 Nothing else under the root is edited before the R slices. If a slice discovers it needs more, it stops, records the need in the ledger under "class C requests", and finishes what it can without it.
 
-### 3.3 Class C: root integration, slices R1 to R4 (v0.5.0)
+### 3.3 Class C: root integration, slices R1 to R4 (v0.4.8)
 
 `src/cli/index.ts` and `src/cli/web.ts`; `tsup.config.ts` entries `web/server`, `web/reads-worker`, `web/ops-worker` plus `noExternal` or `dependencies` for `hono` and `@hono/node-server`; root `devDependencies`; `package.json` `files`; `scripts/release-manifest.json`; `scripts/check-release.mjs` budgets if measurement demands; `tests/smoke/installed-package.test.ts`; `src/cli/trace.ts` (removal of the obsolete `trace ui` subcommand); `TraceReader.runsPage` in `src/domains/observability/trace-store.ts`; `src/cli/docs.ts` replaced by a canonical navigation command into the app (not a compatibility alias) and `tests/contracts/docs-server.test.ts`; any `export` keyword added under `src/`; deletion of `apps/trace-viewer` and disconnection of retained `apps/workbench` with their root references (`package.json` scripts `trace:ui`, `test:trace-viewer`, `ci`; `biome.json`; `README.md`; `CONTRIBUTING.md`; `ROADMAP.md`; `docs/architecture/acp.md`; `docs/architecture/trace-store.md`; comments in `src/domains/evidence/detail.ts`, `src/cli/fleet-verify.ts`, `src/interactive/overlays/settings.ts`); `src/cli/uninstall.ts`; `CHANGELOG.md`.
 
@@ -73,7 +73,7 @@ Nothing else under the root is edited before the R slices. If a slice discovers 
 
 `src/engine/acp/server.ts` (methods, `ACP_FORWARDABLE_EVENT_KINDS`, `session_limit`, `session_cwd_mismatch`), `src/engine/acp/transport.ts`, `src/engine/acp/errors.ts`, `src/engine/acp/types.ts`, `src/cli/acp.ts`, `src/entry/boot-options.ts`, `src/domains/observability/trace-store.ts` (`TraceReader`, schema, `TRACE_SCHEMA_VERSION`), `src/domains/observability/evidence-index.ts`, `src/domains/toolchain/{index,install,resolve,registry,remove,types,version}.ts`, `src/domains/session/history.ts`, `src/domains/session/archive-readers.ts`, `src/domains/dispatch/state.ts`, `src/domains/dispatch/council-topology.ts`, `src/domains/dispatch/gate-topology.ts`, `src/domains/evidence/{store,inventory,detail}.ts`, `src/core/settings-layers.ts`, `src/core/xdg.ts`, `src/core/package-root.ts`, `src/domains/lifecycle/{version,doctor}.ts`, `src/cli/config-inspect.ts`, `src/domains/interop/index.ts`, `src/domains/resources/index.ts`, `src/cli/index.ts`, `src/cli/trace.ts`, `src/cli/docs.ts`, `package.json`, `tsup.config.ts`, `scripts/check-release.mjs`, `scripts/release-manifest.json`, `scripts/check-hygiene.ts`, `biome.json`, `tests/smoke/installed-package.test.ts`, `apps/trace-viewer/**`, `apps/workbench/{clio-host.ts,acp-client.ts,src/timeline.ts,src/markdown.ts,src/Markdown.tsx,src/highlight.ts,src/mermaid.ts,DESIGN_SYSTEM.md}`.
 
-## 4. v0.5.0 milestone map
+## 4. v0.4.8 milestone map
 
 ```text
 Foundation (apps-only, one session each)
@@ -413,7 +413,7 @@ Status: `done`. Depends on: S9 and every slice that absorbs a non-retired covera
 
 ### R1. `clio-coder web` and the packaged install (class C)
 
-Status: `in progress`. Depends on: S10. Root files: `src/cli/index.ts`, `src/cli/web.ts`, `tsup.config.ts`, `package.json`, `scripts/release-manifest.json`, `scripts/check-release.mjs` (only if budgets move), `tests/smoke/installed-package.test.ts`, `CHANGELOG.md` (Unreleased).
+Status: `done`. Depends on: S10. Root files: `src/cli/index.ts`, `src/cli/web.ts`, `tsup.config.ts`, `package.json`, `scripts/release-manifest.json`, `scripts/check-release.mjs` (only if budgets move), `tests/smoke/installed-package.test.ts`, `CHANGELOG.md` (Unreleased).
 
 **Direction.** `web` joins `COMMAND_HANDLERS` as a literal dynamic import of `./web.js`; `src/cli/web.ts` locates `../web/server.js` beside `dist/cli/` by URL, imports it, and runs it in the foreground with the CLI's flags forwarded. tsup entries `web/server`, `web/reads-worker`, `web/ops-worker`; the server resolves worker entries by URL beside itself, with the source-mode paths as the fallback when running under `tsx`. The root build copies `apps/clio-coder-web/dist/client/` to `dist/web/client/`. `files` gains `dist/web/**`. The manifest gains `dist/web/server.js`, `dist/web/reads-worker.js`, `dist/web/ops-worker.js`, `dist/web/client/index.html`.
 
@@ -512,7 +512,7 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | State-dir migration and deprecated env override | workbench | retired | retired |
 | Thirteen CLI re-validation inspectors | workbench | retired | retired |
 
-## 8. Release acceptance for v0.5.0
+## 8. Release acceptance for v0.4.8
 
 Publication is not authorized by this file. These are the checks a release candidate must pass.
 
@@ -606,3 +606,5 @@ End every session by appending the ledger row and recording in that row (no new 
 
 
 | 2026-09-11 | Bootstrap installer | done | `c149fda7` | `c149fda7` (pre-commit) | Explicit operator request for a GitHub raw-content installer and coherent CLI/TUI/GUI onboarding. Claude Code Fable 5.1 Medium implemented the bounded installer/test task in the authorized pane; main agent reviewed and hardened failure recovery and printed shell quoting. | `scripts/install.sh` installs the selected npm version into a user-writable prefix, checks Node >=22.19.0/npm, supports dry-run/version/prefix/optional-dependency choices, refuses foreign launchers unless explicitly forced, restores a displaced link after an early npm failure, prints safe PATH guidance, and delegates post-install migrations to Clio. Next steps inspect the installed help so older npm releases never advertise an unavailable web command. No sudo, shell-profile edits, automatic browser launch or background enablement. All 16 isolated installer contracts PASS, with no network/global install (`/var/tmp/clio-web-verification/installer-final-tests.log`); root lint/hygiene PASS. GitHub URL is prepared, not published; no package version change. R1 and final release gate remain in progress. |
+
+| 2026-09-11 | R1 packaged web integration | done | `4427fdc0` | `4427fdc0` (pre-commit) | Reviewed root CLI/build/package changes since the prior ledger; no ACP, domain or engine behavior changes. Operator authorized root package integration for v0.4.8. | Lazy `web` command, integrated CLI/server/two-worker build and bundled client, licenses including all three font OFLs, compiled native background/desktop launch paths with ownership checks. Removed the superseded S10 rehearsal recipe and tests in favor of the actual npm install test. Programmatic tsup/Vite builds avoid temporary config artifacts beside source. Actual isolated npm install starts both workers without tsx, exercises API/SSE/CLI operations and PWA assets, shuts down cleanly, and proves version/help do not evaluate the server. Native compiled systemd probes PASS on Node 24.20.0 and exact 22.19.0, including restart, stable identity and owned removal; existing user service untouched. Full `ci:release` PASS: 2,118 root tests passed, one skipped, 89 web tests passed, all 16 hygiene checks passed. Final app verify PASS: 139 headless Chrome checks at 1600/1050/390 px, zero Axe findings, overflow, script errors or failed requests. Package 1,929 files, 10.15 MB compressed / 50.89 MB unpacked within the measured 12/55 MB limits. Final skip-link scroll margin also verified. Evidence under `/var/tmp/clio-web-verification/`: `closeout-ci-release.log`, `closeout-app-verify.log`, `clio-web-browser-q3Z6jZ/report.json`, `R1-installed-package-smoke.log`, `R1-native-probe.log`, `R1-native-node22.log`. No visible Chrome, push, publication or version bump. |
