@@ -327,7 +327,7 @@ Status: `done`. Depends on: S5.
 
 ### S8b. Evidence
 
-Status: `todo`. Depends on: S5, S7b (for the runner).
+Status: `done`. Depends on: S5, S7b (for the runner).
 
 **Goal.** Evidence inventory with pagination, artifact detail with trust, provenance, and gate decisions, and `evidence build --run <runId>` as an operation.
 
@@ -493,7 +493,7 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Dispatch status, fleet inspection, decisions | workbench | S8a | absorbed (S8a) |
 | Interop inspection | workbench | S8e | todo |
 | Eval inventory | workbench | S8c | todo |
-| Evidence inventory and detail; receipt verify | workbench | S8b | todo |
+| Evidence inventory and detail; receipt verify | workbench | S8b | absorbed (S8b) |
 | Recovery: doctor and paths | workbench | S8e | todo |
 | Markdown, Prism, Mermaid rendering rules | workbench | S5 | absorbed (S5) |
 | Design system rules and acceptance floor | workbench | S5 | absorbed (S5) |
@@ -548,6 +548,7 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | Operator retirement exception | done | `ba4fe00d` | `ba4fe00d` (pre-commit) | Explicit user authorization overrides the affected root boundaries. Removed only trace UI code/flag; no ACP, provider, persistence, or Pi patch changes. | Removed trace viewer and active command/docs/gate references; retained Workbench byte-for-byte, excluded its workspace importer and namespace gate, preserved Biome exclusion and private publication status. Frozen install PASS (two workspace projects), app typecheck PASS, trace contract 5 PASS. Full `ci:release` PASS: root 2,102 passed / 1 Windows-only skip, web 66 passed, hygiene 16 checks, package 1,752 files / 8.54 MB packed / 45.93 MB unpacked. Log `/var/tmp/clio-web-verification/retirement-ci-release.log`. No audit or temporary artifacts added to the checkout. S8a started; root seam replacement and packaged launcher integration remain deferred. |
 
 | 2026-09-11 | S8a | done | `09ecab7a` | `09ecab7a` (pre-commit) | Reviewed operator retirement delta: trace CLI removal, workspace/lock and gate changes; canonical dispatch/store seams unchanged. | Seven fleet REST reads: keyset-paginated roots and dispatches, individual records, full receipts, councils and gates, with pages consuming these APIs. Own directory scan bypasses root `MAX_FLEET_RUN_SCAN=64` to reach all records; scan rejects beyond 100,000 entries, artifact reads bounded to 8 MiB and realpath-contained. Uses canonical `readFleetRun`, read-only ledger listing, `councilTopologies`, and `gateTopology`. Council (four groups/256 rows) and gate (eight decisions/128 files) windows remain canonical and expose truncation. Fixture 150 roots visited exactly once, corrupt rows isolated, two council rounds and authenticated gate rendered; oversized-ledger error regression PASS. Verify: 67 tests and 82 Chrome checks PASS, zero Axe/overflow/errors; final typecheck/lint and focused storage regression PASS, root typecheck/lint PASS. Browser report `/var/tmp/clio-web-verification/clio-web-browser-uO8QpN/report.json`. No dependency/root changes. S8b next. |
+| 2026-09-11 | S8b | done | `a534649a` | `a534649a` (pre-commit) | Inspected S8a app-only delta; root evidence, receipt-integrity and CLI seams unchanged. | Paginated evidence REST and pages, full canonical trust/provenance/gate detail, fixed-argv evidence build and receipt recheck operations. All five named evidence store exports reused; per-run trust verdicts and admitted provenance remain canonical. Bundle severity ordering matches CLI inventory presentation. 40 artifacts visited once, historical trust missing only for its artifact, incomplete files ignored, escaping links refused, invalid gates rejected. Real CLI build exits 0 and adds the 41st artifact; duplicate key does not rebuild; receipt tampering returns canonical failed/ledger-mismatch after a successful command. Bounds: 8 MiB/file, 10,000 directories, 64 MiB overview inventory. Verify PASS: 69 tests, 91 Chrome checks with zero Axe/overflow/script/request failures; final incomplete-file regression 2 PASS. Root typecheck/lint PASS. Logs `/var/tmp/clio-web-verification/S8b-verify.log`, `S8b-final-focused.log`; browser `clio-web-browser-KbTBht/report.json`. No root/dependency edits or temporary artifacts in checkout. S8c next. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
