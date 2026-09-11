@@ -363,7 +363,7 @@ Status: `done`. Depends on: S5, S7b.
 
 ### S8e. Interop and system
 
-Status: `todo`. Depends on: S5.
+Status: `done`. Depends on: S5.
 
 **Goal.** Detected external coding agents, and a system page with doctor findings, resolved paths, and versions.
 
@@ -491,10 +491,10 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Usage report | workbench | S8c (bridge) | absorbed (S8c) |
 | Routing: offline models, profiles, bindings | workbench | S7b (bridge) | absorbed (S7b) |
 | Dispatch status, fleet inspection, decisions | workbench | S8a | absorbed (S8a) |
-| Interop inspection | workbench | S8e | todo |
+| Interop inspection | workbench | S8e | absorbed |
 | Eval inventory | workbench | S8c | absorbed (S8c) |
 | Evidence inventory and detail; receipt verify | workbench | S8b | absorbed (S8b) |
-| Recovery: doctor and paths | workbench | S8e | todo |
+| Recovery: doctor and paths | workbench | S8e | absorbed |
 | Markdown, Prism, Mermaid rendering rules | workbench | S5 | absorbed (S5) |
 | Design system rules and acceptance floor | workbench | S5 | absorbed (S5) |
 | Browser smoke with Axe; perf workload | workbench | S5 (perf optional) | absorbed (S5); perf deferred |
@@ -582,3 +582,5 @@ Pinned versions (installed in S1):
 ## 10. Handoff note format
 
 End every session by appending the ledger row and recording in that row (no new temporary notes, audits, screenshots, or prompts inside the checkout): what was built, the exact acceptance checks that ran with pass or fail, anything skipped and why, measurements taken for the bounded experiments, and the next ready slice. If the session ends mid-slice, mark the row `in-progress`, list the files touched, and state what the next session must finish before the acceptance list can be run. Do not commit unless the operator asked in that session.
+
+| 2026-09-11 | S8e | done | `306ba98d` | `306ba98d` (pre-commit) | Inspected S8d app-only changes; root interop, doctor, XDG and version seams unchanged. | Read-only system and workspace interop REST APIs plus pages. Canonical doctor runs with fix false; all four roots and Clio/Node/Pi versions exposed. Failed settings/credentials parser text is explicitly withheld because it can quote secrets. All eight registered agent kinds retain presence and bounded version/resource discovery, including unknown inventory; no accept, execution, or repair route. Canonical limits: 2 s / 4 KiB per version probe, 4,096 inventory files, depth 12, 2 MiB per file; fixture proves a stalled executable is bounded and private config values stay private. Verify PASS: 75 tests / 136 Chrome checks, zero Axe/overflow/script/request failures; root typecheck/lint PASS. Evidence `/var/tmp/clio-web-verification/S8e-verify.log`, browser `clio-web-browser-LVVDHa/report.json`. No root/dependency edits or temporary artifacts in checkout. S9 next. |
