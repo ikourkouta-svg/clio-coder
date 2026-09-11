@@ -202,7 +202,9 @@ Status: `done`. Depends on: S1. Requires root `pnpm run build` for the real chil
 
 ### S4. Sessions B: permissions, cancel, safe settings, targets, fleet strip, reconnect proof
 
-Status: `todo`. Depends on: S3.
+Status: `done`. Depends on: S3.
+
+**Closeout:** app verify passes 42 tests; the separate real-CLI lane verifies the session controls and durable label/delete. E2/E4 reconnect and memory measurements pass. Root typecheck passes; lint has only the two baseline docs-parity failures. See [S4 evidence](notes/2026-09-11-S4.md).
 
 **Goal.** A session is fully usable: approvals are answered from the page with truthful escalation, turns can be cancelled, the four safe settings and targets are read and changed through the child, dispatch and evidence events show as a strip, and a mid-turn reconnect resumes correctly.
 
@@ -460,13 +462,13 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Static blueprint serving, traversal and symlink protection, HEAD and 405 | `src/cli/docs.ts` | S6 | todo |
 | Topic deep link and menu synthesis | `src/cli/docs.ts` | S6 | todo |
 | Markdown docs tree, rendering, search | new | S6 | todo |
-| One ACP child per session; initialize, new, load, prompt, cancel, close | workbench | S3, S4 | deferred (S3 lifecycle absorbed; S4 adds the cancel control) |
+| One ACP child per session; initialize, new, load, prompt, cancel, close | workbench | S3, S4 | absorbed (S3/S4) |
 | Turn projection: text, thought, tool cards with kind, status, locations; provenance labels | workbench | S3 | absorbed (S3) |
-| Permission mediation with escalate and budget timers, never implicit | workbench | S4 | todo |
-| Loop-guard and dispatch event strip; `accountability.evidenceReady` | workbench (six kinds) plus the seventh | S4 | todo |
-| Safe settings get and patch (four keys), autonomy | workbench | S4 | todo |
-| Targets list and probe through the session | workbench | S4 | todo |
-| Session list, label, delete | workbench | S3, S4 | deferred (S3 list absorbed; label/delete in S4) |
+| Permission mediation with escalate and budget timers, never implicit | workbench | S4 | absorbed (S4) |
+| Loop-guard and dispatch event strip; `accountability.evidenceReady` | workbench (six kinds) plus the seventh | S4 | absorbed (S4) |
+| Safe settings get and patch (four keys), autonomy | workbench | S4 | absorbed (S4) |
+| Targets list and probe through the session | workbench | S4 | absorbed (S4) |
+| Session list, label, delete | workbench | S3, S4 | absorbed (S3/S4) |
 | Recent workspaces, open by path | workbench (folder picker) | S3 | absorbed (S3) |
 | Bounded read-only file tree | workbench | deferred to a slice after S8e | deferred |
 | File create, move, delete with challenge | workbench | retired | retired |
@@ -519,6 +521,7 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | S2 trace explorer | done | `b89f2046` | `b89f2046` (pre-commit) | Inspected `1e1162f6..b89f2046`: only the approved S1 manifest/checker seams changed; no root source changes | Operator authorized continuing across all S slices and atomic local commits, with no push. S1 committed as `b89f2046`. Added full trace history, details, receipts, and live SSE; 25 app tests pass, including 1,200-run pagination and terminal tail closure. Chrome 1440/390 checks pass, no overflow/errors/failed requests. Root typecheck passes; lint and CI stop only on the two documented baseline docs failures. All S2 changes under the app, no dependencies added. [Evidence and measurements](notes/2026-09-11-S2.md). S3 next. |
 
 | 2026-09-11 | S3 sessions A | done | `6aa24a94` | `6aa24a94` (pre-commit) | S2 commit inspected; no root delta beyond the approved S1 edits | Workspaces, ledger history, ACP supervisor, streamed turn projection, revision buffer, app-state serialization and orphan reconciliation. 35 app tests pass; real CLI test passes with history/load/replay and E3 (three children 603,000 KiB RSS, ~1.4 s boot each; cap remains 4). Real-CLI Chrome conversation passes at 1440/390 with no overflow, JS exceptions or failed requests. Root build/typecheck pass; CI/lint stop only at the baseline docs failures. [Evidence](notes/2026-09-11-S3.md). All changes app-only, no new dependency. S4 next. |
+| 2026-09-11 | S4 | done | `4edab892` | `4edab892` (pre-commit) | No root source seam changes since the reviewed baseline; app-only controls through existing ACP methods. | App verify: 42 tests PASS; real ACP controls/label/delete PASS; E2/E4 1,400 chunks replayed exactly, ring 486337 B, RSS growth 69.8 MiB, heap growth 20.0 MiB; root typecheck PASS, lint baseline two failures only. No dependency changes or class C requests. [Evidence](notes/2026-09-11-S4.md). |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
