@@ -51,7 +51,7 @@ Run deterministic local checks on the candidate commit before requesting authori
 
    This gate runs `pnpm run ci` followed by `node scripts/check-release.mjs`. It verifies
    type checking, Biome formatting, hygiene rules, architecture boundary invariants,
-   the build, the contract and smoke test suites, trace-viewer tests, and dist integrity.
+   the build, the contract and smoke test suites, web application tests, and dist integrity.
    The packaging audit checks executable entry shebangs, ensures forbidden files like
    source maps and caches are omitted, verifies runtime resources from `scripts/release-manifest.json`,
    and enforces size limits (10 MB packed, 50 MB unpacked).

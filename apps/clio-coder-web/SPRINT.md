@@ -313,7 +313,7 @@ Status: `done`. Depends on: S7a.
 
 ### S8a. Fleet runs, receipts, councils, gates
 
-Status: `todo`. Depends on: S5.
+Status: `in-progress`. Depends on: S5.
 
 **Goal.** A paginated fleet page: durable runs, per-run receipt, council and gate topologies.
 
@@ -420,6 +420,8 @@ Status: `todo`. Depends on: S10. Root files: `src/cli/index.ts`, `src/cli/web.ts
 
 ### R2. Trace retirement (class C)
 
+**Operator amendment:** viewer deletion, command/flag removal, workspace/script/gate cleanup, and current docs references completed in the separate 2026-09-11 retirement commit. The optional root `runsPage` seam replacement remains deferred to root web integration; S2 pagination continues to use its tested app-local adapter.
+
 Status: `todo`. Depends on: R1, S2 matrix rows absorbed. Root files: `src/domains/observability/trace-store.ts` (`TraceReader.runsPage({before, limit, filter})`), `src/cli/trace.ts` (remove the `ui` subcommand, its `--port` flag, `runTraceUi`, and the help line; it is obsolete, not aliased), `package.json` scripts (`trace:ui`, `test:trace-viewer`, `ci`), `docs/architecture/trace-store.md`, `README.md`, deletion of `apps/trace-viewer/`, `CHANGELOG.md`. The app's keyset SQL is replaced by the new seam in the same session.
 
 **Acceptance.** `pnpm run ci` no longer references the viewer; `clio-coder trace ui` is an unknown trace command (exit 2, the existing rule for unknown subcommands); the app's pagination tests pass against `runsPage`; root lint passes in full.
@@ -431,6 +433,8 @@ Status: `todo`. Depends on: R1, S6. Root files: `src/cli/docs.ts` loses its stat
 **Acceptance.** `clio-coder docs safety` opens the app at the safety page from a checkout and from an installed package (Markdown page; blueprint when the checkout has it); no static docs server remains in `src/cli/`.
 
 ### R4. Workbench retention and disconnection (operator amendment)
+
+**Operator amendment:** source retention and build/publication/gate disconnection completed in the separate 2026-09-11 retirement commit. Packaged launcher/uninstall integration remains dependent on R1. Do not delete Workbench.
 
 Status: `todo`. Depends on: R1, S4, S5, S7a, S7b, S8a to S8e matrix rows absorbed. Root files: retain `apps/workbench/` as reference source; exclude it from pnpm workspace builds, publication, and gates; preserve its `biome.json` exclusion; `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `docs/architecture/acp.md`; comments in `src/domains/evidence/detail.ts`, `src/cli/fleet-verify.ts`, `src/interactive/overlays/settings.ts`; `src/cli/uninstall.ts` removes the launcher entry the app installed (reads the same manifest the launcher writes); `CHANGELOG.md`.
 
@@ -538,6 +542,8 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | S7a | done | `1c5dd3f6` | `1c5dd3f6` (pre-commit) | S6 is app-only; no root seam changes since reviewed baseline. | Effective settings and customization graph through lazy worker adapters. Canonical leaf/source, credential/env/argv redaction and no-write tests PASS; graph 15-second deadline and later reads PASS. Verify: 60 tests and 61 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Root typecheck PASS, lint baseline only. No dependencies/root edits. Projections remove sensitive data before worker RPC; graph transitive imports stay in the reads worker. [Evidence](notes/2026-09-11-S7a.md). S7b next. |
 
 | 2026-09-11 | S7b | done | `9b786872` | `9b786872` (pre-commit) | S7a inspected; root Pi patch unchanged since its earlier keyboard commit. No root source or dependency changes in this slice. | Fixed-argv CLI runner (four children, 60 s, stdout 8 MiB/stderr 256 KiB), targets list/probe/use/remove and offline routing REST APIs with typed follow-up results; Targets/Routing pages. Real CLI mutations, routing parity, strict argv/JSON, error redaction and cancellation/reaping PASS. Large terminal results use REST refetch from SSE; retention 256 records/16 MiB. Verify: 66 tests and 73 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Root typecheck/lint PASS; old docs baseline resolved by operator. Targets add deferred: configure JSON is inspection, not a non-interactive add contract; other global writes remain class C candidates. All reports now outside checkout under `/var/tmp/clio-web-verification/`; browser report `clio-web-browser-gwtgPT/report.json`. Operator authorized retaining/disconnecting Workbench and retiring trace viewer; that separate cleanup precedes S8a. |
+
+| 2026-09-11 | Operator retirement exception | done | `ba4fe00d` | `ba4fe00d` (pre-commit) | Explicit user authorization overrides the affected root boundaries. Removed only trace UI code/flag; no ACP, provider, persistence, or Pi patch changes. | Removed trace viewer and active command/docs/gate references; retained Workbench byte-for-byte, excluded its workspace importer and namespace gate, preserved Biome exclusion and private publication status. Frozen install PASS (two workspace projects), app typecheck PASS, trace contract 5 PASS. Full `ci:release` PASS: root 2,102 passed / 1 Windows-only skip, web 66 passed, hygiene 16 checks, package 1,752 files / 8.54 MB packed / 45.93 MB unpacked. Log `/var/tmp/clio-web-verification/retirement-ci-release.log`. No audit or temporary artifacts added to the checkout. S8a started; root seam replacement and packaged launcher integration remain deferred. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
