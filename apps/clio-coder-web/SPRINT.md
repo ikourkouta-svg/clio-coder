@@ -30,7 +30,7 @@ This file is the executable plan. A fresh coding session executes it without the
 - Mutations with admission logic in CLI commands run as fixed-argv CLI children through one spawn chokepoint (`server/process-policy.ts`).
 - Problem JSON errors with a closed `code` enum. Per-launch bearer token, loopback bind, `Host` and `Origin` checks, identifiers validated by shape, `realpath` containment on every path.
 - React 19, Vite 8, `react-router`, `@tanstack/react-query`, the workbench's Markdown, Prism, and Mermaid renderer modules reused.
-- App state under `<clio state dir>/web/` only (recent workspaces). Clio's own files are never written by the app except through Clio's own seams or commands.
+- App state under `<clio state dir>/web/` only (recent workspaces and ACP ownership records). Clio's own files are never written by the app except through Clio's own seams or commands.
 
 ## 2. Naming
 
@@ -171,7 +171,9 @@ Status: `done`. Depends on: S1.
 
 ### S3. Sessions A: supervisor, list, new, load, streamed turns
 
-Status: `todo`. Depends on: S1. Requires root `pnpm run build` for the real child; tests use the fixture child.
+Status: `done`. Depends on: S1. Requires root `pnpm run build` for the real child; tests use the fixture child.
+
+**Closeout:** app verify passes 35 tests, the separate real-CLI test passes (including durable load/replay and E3), and Chrome verifies a streamed real-CLI conversation at 1440/390 px. [S3 evidence](notes/2026-09-11-S3.md).
 
 **Goal.** Open a workspace by path, list its sessions from the ledger, start or load a session (which spawns one `clio-coder acp` child), send a prompt, and watch the turn stream into the page. Server death is handled truthfully.
 
@@ -458,14 +460,14 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Static blueprint serving, traversal and symlink protection, HEAD and 405 | `src/cli/docs.ts` | S6 | todo |
 | Topic deep link and menu synthesis | `src/cli/docs.ts` | S6 | todo |
 | Markdown docs tree, rendering, search | new | S6 | todo |
-| One ACP child per session; initialize, new, load, prompt, cancel, close | workbench | S3, S4 | todo |
-| Turn projection: text, thought, tool cards with kind, status, locations; provenance labels | workbench | S3 | todo |
+| One ACP child per session; initialize, new, load, prompt, cancel, close | workbench | S3, S4 | deferred (S3 lifecycle absorbed; S4 adds the cancel control) |
+| Turn projection: text, thought, tool cards with kind, status, locations; provenance labels | workbench | S3 | absorbed (S3) |
 | Permission mediation with escalate and budget timers, never implicit | workbench | S4 | todo |
 | Loop-guard and dispatch event strip; `accountability.evidenceReady` | workbench (six kinds) plus the seventh | S4 | todo |
 | Safe settings get and patch (four keys), autonomy | workbench | S4 | todo |
 | Targets list and probe through the session | workbench | S4 | todo |
-| Session list, label, delete | workbench | S3, S4 | todo |
-| Recent workspaces, open by path | workbench (folder picker) | S3 | todo |
+| Session list, label, delete | workbench | S3, S4 | deferred (S3 list absorbed; label/delete in S4) |
+| Recent workspaces, open by path | workbench (folder picker) | S3 | absorbed (S3) |
 | Bounded read-only file tree | workbench | deferred to a slice after S8e | deferred |
 | File create, move, delete with challenge | workbench | retired | retired |
 | Config inspection (customization graph) | workbench | S7a | todo |
@@ -480,7 +482,7 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Markdown, Prism, Mermaid rendering rules | workbench | S5 | todo |
 | Design system rules and acceptance floor | workbench | S5 | todo |
 | Browser smoke with Axe; perf workload | workbench | S5 (perf optional) | todo |
-| Deterministic ACP child fixture | workbench (Deno) | S3 (Node) | todo |
+| Deterministic ACP child fixture | workbench (Deno) | S3 (Node) | absorbed (S3) |
 | Deno compiled binary, `.desktop` lifecycle, `clio-coder-gui` | workbench | retired; replaced by the S9 launcher (PWA deferred unless E5 passes) | retired |
 | Artifact allowlist snapshot windows | workbench | retired | retired |
 | Host-only payload policy | workbench | retired (see review section 13, item 3) | retired |
@@ -515,6 +517,8 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | S1 authorized closeout | done | `1e1162f6` | `1e1162f6` | HEAD unchanged from reviewed and preceding ledger SHA; inspected the required local checker seam | Operator explicitly approved the prepared one-line checker update. Applied it without other checker changes. Frozen install, root build/typecheck, client build, and app verify (19 tests, including boundaries and OpenAPI) pass. Root lint fails only on the two documented docs-parity conditions; Biome passes with existing warnings/info and there are no new lint regressions. Earlier browser/E1/E4 evidence remains applicable to the unchanged app. [Closeout evidence](notes/2026-09-11-S1-closeout.md). S2 is next; no S2 work, commit, or push. |
 
 | 2026-09-11 | S2 trace explorer | done | `b89f2046` | `b89f2046` (pre-commit) | Inspected `1e1162f6..b89f2046`: only the approved S1 manifest/checker seams changed; no root source changes | Operator authorized continuing across all S slices and atomic local commits, with no push. S1 committed as `b89f2046`. Added full trace history, details, receipts, and live SSE; 25 app tests pass, including 1,200-run pagination and terminal tail closure. Chrome 1440/390 checks pass, no overflow/errors/failed requests. Root typecheck passes; lint and CI stop only on the two documented baseline docs failures. All S2 changes under the app, no dependencies added. [Evidence and measurements](notes/2026-09-11-S2.md). S3 next. |
+
+| 2026-09-11 | S3 sessions A | done | `6aa24a94` | `6aa24a94` (pre-commit) | S2 commit inspected; no root delta beyond the approved S1 edits | Workspaces, ledger history, ACP supervisor, streamed turn projection, revision buffer, app-state serialization and orphan reconciliation. 35 app tests pass; real CLI test passes with history/load/replay and E3 (three children 603,000 KiB RSS, ~1.4 s boot each; cap remains 4). Real-CLI Chrome conversation passes at 1440/390 with no overflow, JS exceptions or failed requests. Root build/typecheck pass; CI/lint stop only at the baseline docs failures. [Evidence](notes/2026-09-11-S3.md). All changes app-only, no new dependency. S4 next. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
