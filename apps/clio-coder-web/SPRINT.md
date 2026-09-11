@@ -248,7 +248,9 @@ Status: `done`. Depends on: S2, S3 (S4 preferred but not required).
 
 ### S6. Docs
 
-Status: `todo`. Depends on: S5.
+Status: `done`. Depends on: S5.
+
+**Closeout:** 58 app tests and 49 Chrome/Axe checks pass. All 60 discovered Markdown pages render, 279 internal links resolve, and 59 referenced blueprints serve. Root typecheck passes; lint retains only the baseline failures. [S6 evidence](notes/2026-09-11-S6.md).
 
 **Goal.** `/docs` replaces what `clio-coder docs` offered and organises the shipped Markdown tree.
 
@@ -461,9 +463,9 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Server-clock adoption for live spans; pinned timestamp formatting; truthful zero and missing spend | trace-viewer | S2 | absorbed (S2) |
 | Read-only open, schema and WAL checks, rowid cursor | trace-viewer | S2 (via `TraceReader`) | absorbed (S2) |
 | Full-history pagination | new | S2 | absorbed (S2) |
-| Static blueprint serving, traversal and symlink protection, HEAD and 405 | `src/cli/docs.ts` | S6 | todo |
-| Topic deep link and menu synthesis | `src/cli/docs.ts` | S6 | todo |
-| Markdown docs tree, rendering, search | new | S6 | todo |
+| Static blueprint serving, traversal and symlink protection, HEAD and 405 | `src/cli/docs.ts` | S6 | absorbed (S6) |
+| Topic deep link and menu synthesis | `src/cli/docs.ts` | S6 | absorbed (S6) |
+| Markdown docs tree, rendering, search | new | S6 | absorbed (S6) |
 | One ACP child per session; initialize, new, load, prompt, cancel, close | workbench | S3, S4 | absorbed (S3/S4) |
 | Turn projection: text, thought, tool cards with kind, status, locations; provenance labels | workbench | S3 | absorbed (S3) |
 | Permission mediation with escalate and budget timers, never implicit | workbench | S4 | absorbed (S4) |
@@ -526,6 +528,8 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | S4 | done | `4edab892` | `4edab892` (pre-commit) | No root source seam changes since the reviewed baseline; app-only controls through existing ACP methods. | App verify: 42 tests PASS; real ACP controls/label/delete PASS; E2/E4 1,400 chunks replayed exactly, ring 486337 B, RSS growth 69.8 MiB, heap growth 20.0 MiB; root typecheck PASS, lint baseline two failures only. No dependency changes or class C requests. [Evidence](notes/2026-09-11-S4.md). |
 
 | 2026-09-11 | S5 | done | `9a3f3add` | `9a3f3add` (pre-commit) | Root source seams unchanged; inspected the prior app commits and approved S1 manifest/checker delta. | Unified responsive shell, themes, local fonts, safe Markdown/Prism/Mermaid, Problem toasts, browser smoke. Verify: 55 tests and 40 Chrome checks PASS, zero Axe violations/overflow/script errors/failed requests; root typecheck PASS, lint baseline only. Assets 4,231,830 B; entry 516,540 B (156,064 gzip), chunk warnings retained. Nine exact dependencies reuse Workbench pins; root lockfile importer only (+27 lines). [Evidence and screenshots](notes/2026-09-11-S5.md). S6 next. |
+
+| 2026-09-11 | S6 | done | `2cc31787` | `2cc31787` (pre-commit) | Root source seams unchanged; S5 lockfile delta inspected, only its app importer changed. | Docs tree, contained reads, heading/link routes, search and sandboxed blueprints. Verify: 58 tests and 49 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Walk: 60 Markdown pages, 279 live internal links, 59 blueprints. Three outside-repository references in the unrelated draft remain visibly unavailable. Root typecheck PASS, lint baseline only. No dependencies or root edits. [Evidence](notes/2026-09-11-S6.md). S7a next. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
