@@ -227,7 +227,9 @@ Status: `done`. Depends on: S3.
 
 ### S5. Shell, design system, browser smoke
 
-Status: `todo`. Depends on: S2, S3 (S4 preferred but not required).
+Status: `done`. Depends on: S2, S3 (S4 preferred but not required).
+
+**Closeout:** 55 tests and 40 Chrome page/theme/width checks pass, with zero Axe violations, overflow, script errors or failed requests. Root typecheck passes; lint has only the documented baseline failures. [S5 evidence](notes/2026-09-11-S5.md).
 
 **Goal.** The app looks and behaves like one product: navigation, theme, empty and error states, problem toasts with instance ids, the Markdown, Prism, and Mermaid renderers in chat and docs, keyboard basics, and an automated headless-Chrome smoke with Axe.
 
@@ -481,9 +483,9 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Eval inventory | workbench | S8c | todo |
 | Evidence inventory and detail; receipt verify | workbench | S8b | todo |
 | Recovery: doctor and paths | workbench | S8e | todo |
-| Markdown, Prism, Mermaid rendering rules | workbench | S5 | todo |
-| Design system rules and acceptance floor | workbench | S5 | todo |
-| Browser smoke with Axe; perf workload | workbench | S5 (perf optional) | todo |
+| Markdown, Prism, Mermaid rendering rules | workbench | S5 | absorbed (S5) |
+| Design system rules and acceptance floor | workbench | S5 | absorbed (S5) |
+| Browser smoke with Axe; perf workload | workbench | S5 (perf optional) | absorbed (S5); perf deferred |
 | Deterministic ACP child fixture | workbench (Deno) | S3 (Node) | absorbed (S3) |
 | Deno compiled binary, `.desktop` lifecycle, `clio-coder-gui` | workbench | retired; replaced by the S9 launcher (PWA deferred unless E5 passes) | retired |
 | Artifact allowlist snapshot windows | workbench | retired | retired |
@@ -522,6 +524,8 @@ Append one row per session. Never rewrite history; add a correction row instead.
 
 | 2026-09-11 | S3 sessions A | done | `6aa24a94` | `6aa24a94` (pre-commit) | S2 commit inspected; no root delta beyond the approved S1 edits | Workspaces, ledger history, ACP supervisor, streamed turn projection, revision buffer, app-state serialization and orphan reconciliation. 35 app tests pass; real CLI test passes with history/load/replay and E3 (three children 603,000 KiB RSS, ~1.4 s boot each; cap remains 4). Real-CLI Chrome conversation passes at 1440/390 with no overflow, JS exceptions or failed requests. Root build/typecheck pass; CI/lint stop only at the baseline docs failures. [Evidence](notes/2026-09-11-S3.md). All changes app-only, no new dependency. S4 next. |
 | 2026-09-11 | S4 | done | `4edab892` | `4edab892` (pre-commit) | No root source seam changes since the reviewed baseline; app-only controls through existing ACP methods. | App verify: 42 tests PASS; real ACP controls/label/delete PASS; E2/E4 1,400 chunks replayed exactly, ring 486337 B, RSS growth 69.8 MiB, heap growth 20.0 MiB; root typecheck PASS, lint baseline two failures only. No dependency changes or class C requests. [Evidence](notes/2026-09-11-S4.md). |
+
+| 2026-09-11 | S5 | done | `9a3f3add` | `9a3f3add` (pre-commit) | Root source seams unchanged; inspected the prior app commits and approved S1 manifest/checker delta. | Unified responsive shell, themes, local fonts, safe Markdown/Prism/Mermaid, Problem toasts, browser smoke. Verify: 55 tests and 40 Chrome checks PASS, zero Axe violations/overflow/script errors/failed requests; root typecheck PASS, lint baseline only. Assets 4,231,830 B; entry 516,540 B (156,064 gzip), chunk warnings retained. Nine exact dependencies reuse Workbench pins; root lockfile importer only (+27 lines). [Evidence and screenshots](notes/2026-09-11-S5.md). S6 next. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
