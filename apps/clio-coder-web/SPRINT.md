@@ -271,7 +271,9 @@ Status: `done`. Depends on: S5.
 
 ### S7a. Settings and config inspection reads
 
-Status: `todo`. Depends on: S5.
+Status: `done`. Depends on: S5.
+
+**Closeout:** 60 tests and 61 Chrome/Axe checks pass, including seeded layer/credential redaction and the real 15-second graph deadline. Root typecheck passes; lint has only the baseline failures. [S7a evidence](notes/2026-09-11-S7a.md).
 
 **Goal.** Two read-only pages: effective settings with the layer each key came from, and the "why is Clio behaving this way" customization graph.
 
@@ -476,7 +478,7 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Recent workspaces, open by path | workbench (folder picker) | S3 | absorbed (S3) |
 | Bounded read-only file tree | workbench | deferred to a slice after S8e | deferred |
 | File create, move, delete with challenge | workbench | retired | retired |
-| Config inspection (customization graph) | workbench | S7a | todo |
+| Config inspection (customization graph) | workbench | S7a | absorbed (S7a) |
 | Catalog: agents, skills, library, extensions, verifiers | workbench | S8d | todo |
 | Usage report | workbench | S8c (bridge) | todo |
 | Routing: offline models, profiles, bindings | workbench | S7b (bridge) | todo |
@@ -530,6 +532,8 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | S5 | done | `9a3f3add` | `9a3f3add` (pre-commit) | Root source seams unchanged; inspected the prior app commits and approved S1 manifest/checker delta. | Unified responsive shell, themes, local fonts, safe Markdown/Prism/Mermaid, Problem toasts, browser smoke. Verify: 55 tests and 40 Chrome checks PASS, zero Axe violations/overflow/script errors/failed requests; root typecheck PASS, lint baseline only. Assets 4,231,830 B; entry 516,540 B (156,064 gzip), chunk warnings retained. Nine exact dependencies reuse Workbench pins; root lockfile importer only (+27 lines). [Evidence and screenshots](notes/2026-09-11-S5.md). S6 next. |
 
 | 2026-09-11 | S6 | done | `2cc31787` | `2cc31787` (pre-commit) | Root source seams unchanged; S5 lockfile delta inspected, only its app importer changed. | Docs tree, contained reads, heading/link routes, search and sandboxed blueprints. Verify: 58 tests and 49 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Walk: 60 Markdown pages, 279 live internal links, 59 blueprints. Three outside-repository references in the unrelated draft remain visibly unavailable. Root typecheck PASS, lint baseline only. No dependencies or root edits. [Evidence](notes/2026-09-11-S6.md). S7a next. |
+
+| 2026-09-11 | S7a | done | `1c5dd3f6` | `1c5dd3f6` (pre-commit) | S6 is app-only; no root seam changes since reviewed baseline. | Effective settings and customization graph through lazy worker adapters. Canonical leaf/source, credential/env/argv redaction and no-write tests PASS; graph 15-second deadline and later reads PASS. Verify: 60 tests and 61 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Root typecheck PASS, lint baseline only. No dependencies/root edits. Projections remove sensitive data before worker RPC; graph transitive imports stay in the reads worker. [Evidence](notes/2026-09-11-S7a.md). S7b next. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
