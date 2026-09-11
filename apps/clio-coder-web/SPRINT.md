@@ -339,7 +339,7 @@ Status: `done`. Depends on: S5, S7b (for the runner).
 
 ### S8c. Evals and usage
 
-Status: `todo`. Depends on: S5, S7b.
+Status: `done`. Depends on: S5, S7b.
 
 **Goal.** Stored eval reports and the cross-session usage report.
 
@@ -488,11 +488,11 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | File create, move, delete with challenge | workbench | retired | retired |
 | Config inspection (customization graph) | workbench | S7a | absorbed (S7a) |
 | Catalog: agents, skills, library, extensions, verifiers | workbench | S8d | todo |
-| Usage report | workbench | S8c (bridge) | todo |
+| Usage report | workbench | S8c (bridge) | absorbed (S8c) |
 | Routing: offline models, profiles, bindings | workbench | S7b (bridge) | absorbed (S7b) |
 | Dispatch status, fleet inspection, decisions | workbench | S8a | absorbed (S8a) |
 | Interop inspection | workbench | S8e | todo |
-| Eval inventory | workbench | S8c | todo |
+| Eval inventory | workbench | S8c | absorbed (S8c) |
 | Evidence inventory and detail; receipt verify | workbench | S8b | absorbed (S8b) |
 | Recovery: doctor and paths | workbench | S8e | todo |
 | Markdown, Prism, Mermaid rendering rules | workbench | S5 | absorbed (S5) |
@@ -549,6 +549,7 @@ Append one row per session. Never rewrite history; add a correction row instead.
 
 | 2026-09-11 | S8a | done | `09ecab7a` | `09ecab7a` (pre-commit) | Reviewed operator retirement delta: trace CLI removal, workspace/lock and gate changes; canonical dispatch/store seams unchanged. | Seven fleet REST reads: keyset-paginated roots and dispatches, individual records, full receipts, councils and gates, with pages consuming these APIs. Own directory scan bypasses root `MAX_FLEET_RUN_SCAN=64` to reach all records; scan rejects beyond 100,000 entries, artifact reads bounded to 8 MiB and realpath-contained. Uses canonical `readFleetRun`, read-only ledger listing, `councilTopologies`, and `gateTopology`. Council (four groups/256 rows) and gate (eight decisions/128 files) windows remain canonical and expose truncation. Fixture 150 roots visited exactly once, corrupt rows isolated, two council rounds and authenticated gate rendered; oversized-ledger error regression PASS. Verify: 67 tests and 82 Chrome checks PASS, zero Axe/overflow/errors; final typecheck/lint and focused storage regression PASS, root typecheck/lint PASS. Browser report `/var/tmp/clio-web-verification/clio-web-browser-uO8QpN/report.json`. No dependency/root changes. S8b next. |
 | 2026-09-11 | S8b | done | `a534649a` | `a534649a` (pre-commit) | Inspected S8a app-only delta; root evidence, receipt-integrity and CLI seams unchanged. | Paginated evidence REST and pages, full canonical trust/provenance/gate detail, fixed-argv evidence build and receipt recheck operations. All five named evidence store exports reused; per-run trust verdicts and admitted provenance remain canonical. Bundle severity ordering matches CLI inventory presentation. 40 artifacts visited once, historical trust missing only for its artifact, incomplete files ignored, escaping links refused, invalid gates rejected. Real CLI build exits 0 and adds the 41st artifact; duplicate key does not rebuild; receipt tampering returns canonical failed/ledger-mismatch after a successful command. Bounds: 8 MiB/file, 10,000 directories, 64 MiB overview inventory. Verify PASS: 69 tests, 91 Chrome checks with zero Axe/overflow/script/request failures; final incomplete-file regression 2 PASS. Root typecheck/lint PASS. Logs `/var/tmp/clio-web-verification/S8b-verify.log`, `S8b-final-focused.log`; browser `clio-web-browser-KbTBht/report.json`. No root/dependency edits or temporary artifacts in checkout. S8c next. |
+| 2026-09-11 | S8c | done | `46315a54` | `46315a54` (pre-commit) | Inspected S8b app-only changes; root eval store and usage command unchanged. | Eval listing uses exported `listEvalReports` from `eval/inventory.ts`, detail uses `loadEvalArtifactV4`; 13 reports paginate beyond CLI window, malformed files counted, unmeasured tokens remain absent, transcript attachments counted only. Canonical usage bridge receives canonical workspace only and fixed 30 days; discovered actual output is JSON Lines and added strict bounded decoding. Every fact/opportunity retained, including missing stores and shared installation scope. Real session-ledger fixture: two calls / 44 tokens / USD 0.02; another workspace excludes those sessions. Invalid extra arguments and malformed JSONL refused. Verify PASS: 72 tests and 103 Chrome checks, zero Axe/overflow/script/request failures. Root typecheck/lint PASS. Evidence `/var/tmp/clio-web-verification/S8c-verify.log`, browser `clio-web-browser-bcoQQe/report.json`. No root/dependency edits. S8d next. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
