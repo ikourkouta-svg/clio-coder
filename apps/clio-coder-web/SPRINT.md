@@ -108,7 +108,7 @@ Shared acceptance floor for every S slice: `pnpm --filter @iowarp/clio-coder-web
 
 Status: `done`. Depends on: nothing. Class B edits: `pnpm-lock.yaml`, root `package.json` scripts `test:web` and `ci`; operator-authorized exception for the matching `ci` expectation in `scripts/check-hygiene.ts`.
 
-**Closeout:** done after the operator approved and the session applied the one-line `ci` checker update. App verify passes all 19 tests; root build and typecheck pass; root lint has only the two documented baseline docs-parity failures, with no new lint regressions. See the [closeout record](notes/2026-09-11-S1-closeout.md) and [original implementation evidence](notes/2026-09-11-S1.md). S2 is ready but has not started.
+**Closeout:** done after the operator approved and the session applied the one-line `ci` checker update. App verify passes all 19 tests; root build and typecheck pass; root lint has only the two documented baseline docs-parity failures, with no new lint regressions. See the [closeout record](notes/2026-09-11-S1-closeout.md) and [original implementation evidence](notes/2026-09-11-S1.md). S2 was implemented in the continuation below.
 
 **Goal.** From a clean checkout, `pnpm --filter @iowarp/clio-coder-web start` serves a page at a printed loopback URL that lists the three pinned tools with their resolution, installs one on request with progress streamed to the page, removes it, and reports every failure as a problem. Every foundation mechanism exists once and is tested: route table, validation, problem JSON, auth, SSE hub, operation registry, two domain workers, spawn chokepoint, typed client.
 
@@ -144,7 +144,9 @@ Status: `done`. Depends on: nothing. Class B edits: `pnpm-lock.yaml`, root `pack
 
 ### S2. Trace explorer
 
-Status: `todo`. Depends on: S1.
+Status: `done`. Depends on: S1.
+
+**Closeout:** all 25 app tests and Chrome checks pass; root typecheck passes, root lint retains only the documented baseline failures. [S2 evidence](notes/2026-09-11-S2.md).
 
 **Goal.** Everything `apps/trace-viewer` shows, plus full-history pagination and a live tail over SSE, at `/traces`.
 
@@ -444,15 +446,15 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 
 | Capability | Source | Target slice | Status |
 | --- | --- | --- | --- |
-| Run list with filter, source badge, live refresh | trace-viewer | S2 | todo |
-| Run page: headline, duration, phase waterfall, cost panel, phase facts | trace-viewer | S2 | todo |
-| Event log with every type and payload, tool spans, truncation marks | trace-viewer | S2 | todo |
-| Gates with checks and violations | trace-viewer | S2 | todo |
-| Processes panel | trace-viewer | S2 | todo |
-| Receipt panel: outcome, verification, spend, tool stats, findings, provenance; sidecar tolerance | trace-viewer | S2 | todo |
-| Server-clock adoption for live spans; pinned timestamp formatting; truthful zero and missing spend | trace-viewer | S2 | todo |
-| Read-only open, schema and WAL checks, rowid cursor | trace-viewer | S2 (via `TraceReader`) | todo |
-| Full-history pagination | new | S2 | todo |
+| Run list with filter, source badge, live refresh | trace-viewer | S2 | absorbed (S2) |
+| Run page: headline, duration, phase waterfall, cost panel, phase facts | trace-viewer | S2 | absorbed (S2) |
+| Event log with every type and payload, tool spans, truncation marks | trace-viewer | S2 | absorbed (S2) |
+| Gates with checks and violations | trace-viewer | S2 | absorbed (S2) |
+| Processes panel | trace-viewer | S2 | absorbed (S2) |
+| Receipt panel: outcome, verification, spend, tool stats, findings, provenance; sidecar tolerance | trace-viewer | S2 | absorbed (S2) |
+| Server-clock adoption for live spans; pinned timestamp formatting; truthful zero and missing spend | trace-viewer | S2 | absorbed (S2) |
+| Read-only open, schema and WAL checks, rowid cursor | trace-viewer | S2 (via `TraceReader`) | absorbed (S2) |
+| Full-history pagination | new | S2 | absorbed (S2) |
 | Static blueprint serving, traversal and symlink protection, HEAD and 405 | `src/cli/docs.ts` | S6 | todo |
 | Topic deep link and menu synthesis | `src/cli/docs.ts` | S6 | todo |
 | Markdown docs tree, rendering, search | new | S6 | todo |
@@ -511,6 +513,8 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | S0 advisor review | done | `1e1162f6` | `1e1162f6` | HEAD unchanged | Astra accepted the architecture with E4 as the framework checkpoint; corrected unfinished-slice resume, dependency lockfile scope, checkout launcher before R1, and unconditional release gates. Planning documents only. |
 | 2026-09-11 | S1 foundation/toolchain | in-progress | `1e1162f6` | `1e1162f6` | HEAD equals reviewed and last ledger SHA; no intervening commits or seam changes | App implemented; app verify passes (19 tests, both TS programs, Biome, client build), root build/typecheck pass, live curl and Chrome install/progress/remove pass. E1 threads retained; E4 363 glue lines. Root lint has the two baseline docs failures plus the exact-ci checker conflict; checker edit exceeds class B and was not made. [Full evidence, screenshots, boundary request, and resume instructions](notes/2026-09-11-S1.md). No S2 work, commit, or push. |
 | 2026-09-11 | S1 authorized closeout | done | `1e1162f6` | `1e1162f6` | HEAD unchanged from reviewed and preceding ledger SHA; inspected the required local checker seam | Operator explicitly approved the prepared one-line checker update. Applied it without other checker changes. Frozen install, root build/typecheck, client build, and app verify (19 tests, including boundaries and OpenAPI) pass. Root lint fails only on the two documented docs-parity conditions; Biome passes with existing warnings/info and there are no new lint regressions. Earlier browser/E1/E4 evidence remains applicable to the unchanged app. [Closeout evidence](notes/2026-09-11-S1-closeout.md). S2 is next; no S2 work, commit, or push. |
+
+| 2026-09-11 | S2 trace explorer | done | `b89f2046` | `b89f2046` (pre-commit) | Inspected `1e1162f6..b89f2046`: only the approved S1 manifest/checker seams changed; no root source changes | Operator authorized continuing across all S slices and atomic local commits, with no push. S1 committed as `b89f2046`. Added full trace history, details, receipts, and live SSE; 25 app tests pass, including 1,200-run pagination and terminal tail closure. Chrome 1440/390 checks pass, no overflow/errors/failed requests. Root typecheck passes; lint and CI stop only on the two documented baseline docs failures. All S2 changes under the app, no dependencies added. [Evidence and measurements](notes/2026-09-11-S2.md). S3 next. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
