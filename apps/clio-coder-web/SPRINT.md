@@ -1,0 +1,544 @@
+# Clio Coder web: canonical sprint prompt
+
+This file is the executable plan. A fresh coding session executes it without the planning conversation. Read it top to bottom before touching code. `ARCHITECTURE_REVIEW.md` in this directory is the reasoning behind every decision here; when the two disagree, this file wins and the ledger records why.
+
+## 0. Baseline and how to start a session
+
+**Current operator authorization (2026-09-11).** Continue through all S slices, including lettered slices, until implemented, tested, and verified. This overrides the one-slice-per-session stopping rule below; retain acceptance checks and a ledger entry for each slice. The operator subsequently authorized atomic local commits as work completes: "commit atomically as you go. the rule is no push". This overrides earlier no-commit instructions. No push, publication, branch change, or R-slice work is authorized. Root-edit boundaries remain in force.
+
+**Reviewed baseline.** Branch `v048`, SHA `1e1162f687a610f19f27a34495ad06251b237260`, 2026-09-11. Every existing path, symbol, and behavior named in this file was read at that SHA. Every path under `apps/clio-coder-web/` other than the three planning documents is a proposal until the slice that creates it; if a slice finds a better layout it records the change in the ledger. A future session starts at whatever `git rev-parse HEAD` says; that is the session SHA and it is never assumed to equal the reviewed one.
+
+**Baseline state at the reviewed SHA.** `pnpm run typecheck` passes. `pnpm run lint` passes Biome with pre-existing warnings and then fails `scripts/check-hygiene.ts` on two docs-parity conditions caused by the untracked `docs/architecture-managed-prefill-reuse.md`, which belongs to another workstream. Treat that as unrelated baseline dirt: never edit, move, or delete that file, and never claim the whole tree is green. During app work, report the command as failed with no new lint regressions only when Biome passes and those two docs-parity lines are its only hygiene failures. A full pass is also acceptable if the owning workstream has resolved them.
+
+**Start or resume protocol.** Do these in order at the top of every session.
+
+1. Record `git rev-parse HEAD`, `git status --short`, `node --version`, `pnpm --version`.
+2. Compare the session SHA with the reviewed SHA and with the SHA in the last ledger row. If they differ, run `git log --oneline <ledger-sha>..HEAD` and `git diff --stat <ledger-sha>..HEAD -- src package.json pnpm-workspace.yaml tsup.config.ts scripts tests/smoke/installed-package.test.ts biome.json`. Then read the diff for every file in the seam list (section 3.4) that changed. Record in the ledger which seams changed and whether the slice's direction still holds. Never reset, never rebase, never claim to have reviewed a commit you did not open.
+3. `pnpm install --frozen-lockfile` before editing. When the current slice introduces app dependencies, update only the app's manifest and its necessary root lockfile entries with `pnpm install`, as allowed by class B; record exact versions. Then `pnpm run build` at the root, because slices from S3 on spawn the checkout's `dist/cli/index.js`. Then, once S1 exists, `pnpm --filter @iowarp/clio-coder-web build` so the Vite client exists before `start`; on a clean checkout `start` refuses with a clear message when `dist/client/index.html` is missing.
+4. Resume any `in-progress` slice before starting another. Otherwise pick the first slice in section 5 whose status is `todo` and whose dependencies are `done`. Execute only that slice, validate it, update its status here, append its ledger row, and hand off. A session never starts a second slice. If a slice needs more than one session, keep it `in-progress` and carry its remaining acceptance checks into the next session; never mark it done to fit the estimate.
+5. Finish by running the slice's acceptance checks, the app verify (`pnpm --filter @iowarp/clio-coder-web verify` once S1 exists), root `pnpm run typecheck`, and root `pnpm run lint` (interpreted per the baseline note during app work; release acceptance in section 8 allows no such exception). Update the ledger (section 9). Do not commit, push, change branches, or publish unless the operator explicitly asks in that session.
+
+**Operator constraints, verbatim in effect.** New application work lives under `apps/clio-coder-web/`, outside root `src/`. The CLI, TUI, and ACP stay canonical and independent; nothing makes them depend on an HTTP process. Workbench, trace viewer, and docs server are replaceable, and the trace viewer is deleted once its capabilities are absorbed, in a root integration slice. Zero users: no migrations, no legacy wire readers, no compatibility aliases, no state importers, no parallel implementations for the old apps. Do not touch unrelated work, do not change branches, reset, commit, push, or publish. Naming is provisional and never a blocker.
+
+## 1. Accepted architecture in one screen
+
+- One Node process (`clio-coder web` at v0.5.0; `node --import tsx server/main.ts` from the checkout now) on `127.0.0.1`, foreground, Ctrl+C to stop. Ordinary CLI, TUI, and ACP startup never starts it. Explicit app launch actions, including `clio-coder docs` after R3, may start it.
+- Hono 4 on `@hono/node-server`. TypeBox on the root's `typebox` line. A **route table** in `contracts/routes.ts` is the single source of truth for validation, OpenAPI, and the typed client.
+- REST for commands and queries; one global SSE stream with `{v, epoch, seq}` envelopes, a 4,096-entry ring, `hello` and `resync` events, snapshot headers `X-Clio-Epoch` and `X-Clio-Seq`; resource SSE streams for live trace tails.
+- Two `worker_threads` domain workers (reads, ops) host every blocking adapter that imports `src/**`. Bounded queues (64), per-call deadlines, no interruption of synchronous work, truthful `cancellable` flags.
+- One supervised `clio-coder acp --cwd <root>` child per open session, spawned through `src/engine/acp/transport.ts` `createStdioTransport`.
+- Mutations with admission logic in CLI commands run as fixed-argv CLI children through one spawn chokepoint (`server/process-policy.ts`).
+- Problem JSON errors with a closed `code` enum. Per-launch bearer token, loopback bind, `Host` and `Origin` checks, identifiers validated by shape, `realpath` containment on every path.
+- React 19, Vite 8, `react-router`, `@tanstack/react-query`, the workbench's Markdown, Prism, and Mermaid renderer modules reused.
+- App state under `<clio state dir>/web/` only (recent workspaces). Clio's own files are never written by the app except through Clio's own seams or commands.
+
+## 2. Naming
+
+Package `@iowarp/clio-coder-web`. Directory `apps/clio-coder-web`. Product name `Clio Coder`. Command `clio-coder web` (v0.5.0). State `<state>/web/`. Log prefix `[clio-coder:web]`. The product, package, command, and state directory are not named workbench, GUI, or daemon; the words themselves are fine in prose.
+
+## 3. Boundaries
+
+### 3.1 Class A: apps-only, every slice S1 to S10
+
+All files under `apps/clio-coder-web/`. Root imports are written against real module targets under `<repo>/src/` and appear only in `server/clio/**`:
+
+- `server/clio/http-shims.ts` is the only file the HTTP process may use to reach root code, and it re-exports exactly: `createStdioTransport` and the `AcpJsonRpcTransport` type from `src/engine/acp/transport.ts`; `AcpProcessError`, `AcpTimeoutError`, `AcpRequestError`, `AcpProtocolError` from `src/engine/acp/errors.ts`; wire types from `src/engine/acp/types.ts`; `clioStateDir`, `clioDataDir`, `clioConfigDir`, `resolveClioDirs` from `src/core/xdg.ts`; `resolvePackageRoot` from `src/core/package-root.ts`; `processAlive`, `processBirthToken` from `src/core/process-identity.ts`; `getVersionInfo` from `src/domains/lifecycle/version.ts`.
+- `server/clio/adapters/**` holds blocking adapters and is imported only by `server/worker/reads-main.ts` and `server/worker/ops-main.ts`.
+- Never imported directly: `src/interactive/**`, `src/entry/**`, `src/tools/**`, `src/engine/**` beyond the three ACP files, any `extension.ts`. The rule is about direct imports; a seam's transitive graph (for example `src/domains/toolchain/index.ts` importing its own `extension.ts`) is accepted as that seam's cost and recorded in the ledger once.
+- `tests/harness/**` and `tests/fixtures/**` may import named root modules the production allowlist excludes (for example `TraceStore` from `src/domains/observability/trace-store.ts` to write a fixture database, and the OpenAI-compatible fixture from `tests/harness/` at the root); the boundary test carries that second, narrower allowlist explicitly.
+- `tests/boundaries.test.ts` enforces all of the above and fails the app verify when violated.
+- When the only existing form of a fact is an unexported `src/cli/*Snapshot` builder, choose one and record it in the ledger: project from the exported domain seam beneath it; run the fixed-argv CLI command through the mutation runner as a deliberate bridge; or defer to a class C slice. Adding `export` under `src/` is never done in an S slice.
+
+### 3.2 Class B: minimal root integration allowed in S slices, each enumerated
+
+| Edit | Slice |
+| --- | --- |
+| `pnpm-lock.yaml` updated by `pnpm install` for the app importer and dependencies introduced by the current slice; no unrelated upgrades | S1 initially; later S slices only when their app dependencies change |
+| Root `package.json`: add script `"test:web": "pnpm --filter @iowarp/clio-coder-web test"` and append `&& pnpm run test:web` to `ci` | S1 |
+| `scripts/check-hygiene.ts`: append the same `&& pnpm run test:web` to the expected `ci` string only | S1 closeout; explicit operator boundary exception approved 2026-09-11 |
+
+Nothing else under the root is edited before the R slices. If a slice discovers it needs more, it stops, records the need in the ledger under "class C requests", and finishes what it can without it.
+
+### 3.3 Class C: root integration, slices R1 to R4 (v0.5.0)
+
+`src/cli/index.ts` and `src/cli/web.ts`; `tsup.config.ts` entries `web/server`, `web/reads-worker`, `web/ops-worker` plus `noExternal` or `dependencies` for `hono` and `@hono/node-server`; root `devDependencies`; `package.json` `files`; `scripts/release-manifest.json`; `scripts/check-release.mjs` budgets if measurement demands; `tests/smoke/installed-package.test.ts`; `src/cli/trace.ts` (removal of the obsolete `trace ui` subcommand); `TraceReader.runsPage` in `src/domains/observability/trace-store.ts`; `src/cli/docs.ts` replaced by a canonical navigation command into the app (not a compatibility alias) and `tests/contracts/docs-server.test.ts`; any `export` keyword added under `src/`; deletion of `apps/trace-viewer` and `apps/workbench` with their root references (`package.json` scripts `trace:ui`, `test:trace-viewer`, `ci`; `biome.json`; `README.md`; `CONTRIBUTING.md`; `ROADMAP.md`; `docs/architecture/acp.md`; `docs/architecture/trace-store.md`; comments in `src/domains/evidence/detail.ts`, `src/cli/fleet-verify.ts`, `src/interactive/overlays/settings.ts`); `src/cli/uninstall.ts`; `CHANGELOG.md`.
+
+### 3.4 Seam list to re-inspect when the SHA moves
+
+`src/engine/acp/server.ts` (methods, `ACP_FORWARDABLE_EVENT_KINDS`, `session_limit`, `session_cwd_mismatch`), `src/engine/acp/transport.ts`, `src/engine/acp/errors.ts`, `src/engine/acp/types.ts`, `src/cli/acp.ts`, `src/entry/boot-options.ts`, `src/domains/observability/trace-store.ts` (`TraceReader`, schema, `TRACE_SCHEMA_VERSION`), `src/domains/observability/evidence-index.ts`, `src/domains/toolchain/{index,install,resolve,registry,remove,types,version}.ts`, `src/domains/session/history.ts`, `src/domains/session/archive-readers.ts`, `src/domains/dispatch/state.ts`, `src/domains/dispatch/council-topology.ts`, `src/domains/dispatch/gate-topology.ts`, `src/domains/evidence/{store,inventory,detail}.ts`, `src/core/settings-layers.ts`, `src/core/xdg.ts`, `src/core/package-root.ts`, `src/domains/lifecycle/{version,doctor}.ts`, `src/cli/config-inspect.ts`, `src/domains/interop/index.ts`, `src/domains/resources/index.ts`, `src/cli/index.ts`, `src/cli/trace.ts`, `src/cli/docs.ts`, `package.json`, `tsup.config.ts`, `scripts/check-release.mjs`, `scripts/release-manifest.json`, `scripts/check-hygiene.ts`, `biome.json`, `tests/smoke/installed-package.test.ts`, `apps/trace-viewer/**`, `apps/workbench/{clio-host.ts,acp-client.ts,src/timeline.ts,src/markdown.ts,src/Markdown.tsx,src/highlight.ts,src/mermaid.ts,DESIGN_SYSTEM.md}`.
+
+## 4. v0.5.0 milestone map
+
+```text
+Foundation (apps-only, one session each)
+  S1 server + contracts + workers + toolchain vertical, end to end
+  S2 trace explorer (absorbs apps/trace-viewer)
+  S3 sessions A: supervisor, list, new, load, prompt streaming
+  S4 sessions B: permissions, cancel, settings, targets, fleet event strip, reconnect proof
+  S5 shell and design system, browser smoke, accessibility floor
+  S6 docs (absorbs src/cli/docs.ts capability)
+  S7a settings and config inspection reads
+  S7b CLI mutation runner, targets read bridge, targets use and remove
+  S8a fleet runs, receipts, councils, gates
+  S8b evidence inventory, detail, evidence build
+  S8c evals and usage
+  S8d library and catalog
+  S8e interop and system (doctor, paths, version)
+  S9 launcher, idle-exit, process policy experiment (PWA only if E5 passes)
+  S10 packaging rehearsal from apps/ (proves the R1 layout without root edits)
+Root integration (class C, one session each)
+  R1 clio-coder web command, tsup entries, files, manifest, installed-package smoke
+  R2 trace retirement: TraceReader.runsPage, remove trace ui, delete apps/trace-viewer
+  R3 docs: clio-coder docs becomes the canonical navigation command into the app; docs.ts static server removed
+  R4 workbench deletion, uninstall awareness, references, CHANGELOG
+Release acceptance (section 8), publication not authorized by this file
+```
+
+The status and dependency line of each slice is authoritative. The default execution order is the document order: S1 through S10, including the lettered slices, then R1 through R4. S5 may run before S4 after S2 and S3 are done; S8b, S8c, and S8d require S7b. There are nineteen slices plus release acceptance. Plan roughly one focused session per slice, allowing unfinished slices to resume; each session works on at most one slice and hands off.
+
+## 5. Battle order: slices
+
+Every slice is sized for one focused agent session, leaves a green app verify and a runnable app, and ends with a ledger row. "Existing" commands run today at the reviewed SHA; "introduced" commands exist only after the slice that names them.
+
+Shared acceptance floor for every S slice: `pnpm --filter @iowarp/clio-coder-web verify` passes (typecheck, lint through root Biome, tests, client build, and from S5 the browser smoke); root `pnpm run typecheck` passes; root `pnpm run lint` passes or shows only the two baseline docs-parity failures (reportable during app work, never a release pass); `tests/boundaries.test.ts` passes; no file outside `apps/clio-coder-web/` changed except the class B edits allowed for the slice; the slice status and ledger row are updated.
+
+---
+
+### S1. Foundation and the toolchain vertical
+
+Status: `done`. Depends on: nothing. Class B edits: `pnpm-lock.yaml`, root `package.json` scripts `test:web` and `ci`; operator-authorized exception for the matching `ci` expectation in `scripts/check-hygiene.ts`.
+
+**Closeout:** done after the operator approved and the session applied the one-line `ci` checker update. App verify passes all 19 tests; root build and typecheck pass; root lint has only the two documented baseline docs-parity failures, with no new lint regressions. See the [closeout record](notes/2026-09-11-S1-closeout.md) and [original implementation evidence](notes/2026-09-11-S1.md). S2 is ready but has not started.
+
+**Goal.** From a clean checkout, `pnpm --filter @iowarp/clio-coder-web start` serves a page at a printed loopback URL that lists the three pinned tools with their resolution, installs one on request with progress streamed to the page, removes it, and reports every failure as a problem. Every foundation mechanism exists once and is tested: route table, validation, problem JSON, auth, SSE hub, operation registry, two domain workers, spawn chokepoint, typed client.
+
+**Proposed files to create** (all under `apps/clio-coder-web/`; the layout is a proposal and the slice may adjust it, recording the change):
+
+- `package.json` (`@iowarp/clio-coder-web`, private, `type: module`), `tsconfig.json` (extends `../../tsconfig.json`, overrides the inherited `rootDir` to `"../.."` so root `src/**` imports are inside the program (TS6059 otherwise), `noEmit: true`, no `outDir`, includes `server`, `contracts`, `tests`, `scripts`; imported root files join the program through the imports themselves), `tsconfig.client.json` (`lib: ["ES2022","DOM","DOM.Iterable"]`, `jsx: react-jsx`, includes `client`, `contracts`), `vite.config.ts` (`root: "client"`, `build.outDir: "../dist/client"`, dev proxy of `/api` to the server port), `README.md`.
+- `contracts/common.ts` (`Problem`, `ProblemCode` enum, `PageCursor`, `Id` pattern), `contracts/meta.ts`, `contracts/events.ts` (envelope, `hello`, `resync`, `operation.progress`, `operation.finished`, `toolchain.changed`), `contracts/operations.ts`, `contracts/toolchain.ts`, `contracts/routes.ts` (`defineRoute`, the table), `contracts/openapi.ts` (emitter), `contracts/openapi.json` (generated).
+- `server/main.ts`, `server/app.ts`, `server/http/{auth,validate,problem,sse,static,routes-meta,routes-events,routes-operations,routes-toolchain}.ts`, `server/services/{event-hub,operations,toolchain}.ts`, `server/worker/{protocol,host,reads-main,ops-main,reads-methods,ops-methods}.ts`, `server/clio/http-shims.ts`, `server/clio/adapters/{paths,version,toolchain}.ts`, `server/process-policy.ts`.
+- `client/index.html`, `client/main.tsx`, `client/app.tsx` (router with `/` and `/toolchain`), `client/api/{client,events,queries}.ts`, `client/pages/{home,toolchain}.tsx`, `client/styles.css` (minimal; S5 owns design).
+- `tests/harness/{scratch-home,fake-fetch}.ts`, `tests/{boundaries,contracts,openapi,event-hub,operations,worker-rpc,http-meta,http-toolchain,process-policy}.test.ts`, `scripts/openapi.ts`.
+
+**Direction.** Pin exact versions when installing and record them in the ledger: `hono`, `@hono/node-server`, `typebox` (the root's `1.3.0`), `react`, `react-dom`, `react-router`, `@tanstack/react-query`; dev `vite`, `@vitejs/plugin-react`, `tsx`, `typescript` (match the root's `6.0.3`), `@types/node` (match root), `@types/react`, `@types/react-dom`, and one OpenAPI 3.1 validator for tests. Root imports resolve against `<repo>/src/...` (from `server/clio/` that is `../../../../src/`); `tests/boundaries.test.ts` proves the resolution and the allowlist. `main.ts` binds `127.0.0.1`, mints the token, prints `http://127.0.0.1:<port>/#token=<token>`, starts both workers, and installs SIGINT and SIGTERM handlers that stop workers and close the listener. The toolchain adapter passes `installTool` a `fetch` restricted to `PINNED_TOOLS` download and document URLs. `toolStatuses()` runs in the reads worker; `installTool` and `removeTool` in the ops worker; `installTool`'s `onProgress` frames become `{id, progress}` RPC frames become `operation.progress` events. The install operation is created with `cancellable: false`. Public projections live in `server/services/toolchain.ts`; the `installDir` and `binaryPath` fields are projected as-is because the operator is on loopback, and the ledger notes that choice.
+
+**Commands.** Existing: `pnpm install`, root `pnpm run build`, root `pnpm run typecheck`, root `pnpm run lint`. Introduced: `pnpm --filter @iowarp/clio-coder-web start` (`node --import tsx server/main.ts`; refuses with a message when `dist/client/index.html` is absent, so run `build` first), `... dev:server`, `... dev:client`, `... build`, `... typecheck`, `... test`, `... openapi`, `... verify`, root `pnpm run test:web`.
+
+**Acceptance.**
+
+1. `curl -sf http://127.0.0.1:<port>/api/meta` without a token is `401` problem JSON; with `Authorization: Bearer <token>` it returns `{clio, app, apiVersion, epoch}` where `clio` equals the root `package.json` version.
+2. A request with `Host: example.com` is `421`.
+3. `GET /api/toolchain/tools` returns three rows whose `id` set equals `PINNED_TOOLS` ids, in registry order, and the call ran in the reads worker (asserted by a worker-thread id echoed in a test-only header or log line).
+4. With the fake fetcher serving a fabricated `PinnedTool` (the pattern `tests/contracts` uses for `installPinnedTool`), `POST .../install` returns `202 {operationId}`, the global SSE stream delivers at least two `operation.progress` events and one `operation.finished` with `status: succeeded`, and `GET /api/operations/:id` returns the same terminal record. The same key with the same body returns the same operation; the same key with a different body is `409`.
+5. A fetch to a URL outside the pin is refused before any socket opens (fake fetcher asserts it was never called).
+6. `POST /api/operations/:id/cancel` on the install is `409` with `code: unsupported`.
+7. Worker queue: 65 concurrent reads produce at least one `503` problem with `code: unavailable` and a `Retry-After` header; a read whose adapter sleeps past its deadline returns `unavailable` and the worker's late result is discarded (test hook).
+8. SSE: a client connecting with `Last-Event-ID` older than the ring receives `resync` first; one within the ring receives exactly the missed envelopes in order; the ring never exceeds 4,096 entries or 8 MiB (test fills it).
+9. `contracts/openapi.json` is regenerated by `pnpm ... openapi`, a test fails if it is stale, and the document validates as OpenAPI 3.1 with every route in the table present with its path parameters and query parameters.
+10. E1 and E4 recorded in the ledger: worker start under `tsx` works or the fallback was taken; measured glue line counts for `server/http/**` plus `contracts/routes.ts` plus `contracts/openapi.ts`.
+11. Browser: the built client at `/toolchain` renders the three tools; clicking install on the fabricated tool (dev fixture mode) shows streamed progress and the finished state. Manual check recorded with a screenshot path in the ledger; automated browser smoke arrives in S5.
+
+**Out of scope.** Design system, sessions, trace, docs, any page beyond home and toolchain, `--open`, PWA, idle exit.
+
+---
+
+### S2. Trace explorer
+
+Status: `todo`. Depends on: S1.
+
+**Goal.** Everything `apps/trace-viewer` shows, plus full-history pagination and a live tail over SSE, at `/traces`.
+
+**Proposed files.** `contracts/traces.ts`; routes added to `contracts/routes.ts`; `server/http/routes-traces.ts`; `server/services/traces.ts` (public projections, receipt field policy); `server/clio/adapters/traces.ts` (opens `TraceReader` once per worker lifetime and reopens on schema or I/O error; keyset SQL on `reader.db`; sidecar readers using `readEvidenceIndex` and `<state>/receipts/<runId>.json`); `client/pages/traces/{runs,run}.tsx` and components (waterfall, phase facts, event row with payload disclosure, gates, processes, receipt panel, live indicator); `tests/harness/trace-fixture.ts` (writes a fixture database through `TraceStore` from `src/domains/observability/trace-store.ts`, which tests may import directly), `tests/{http-traces,traces-pagination,traces-live}.test.ts`.
+
+**Direction.** Endpoints: `GET /api/traces/status` (`available`, `schemaVersion`, retention policy, never the path), `GET /api/traces/runs?limit<=200&cursor&source&status&q`, `GET /api/traces/runs/:runId`, `/phases`, `/events?after&limit<=500`, `/gates`, `/envelopes`, `/processes`, `/receipt` (five large fields omitted) and `/receipt?include=full`, `GET /api/traces/runs/:runId/live?after=<rowid>` (SSE, 500 ms worker poll, closes after two idle polls past a terminal status). Pagination cursor is base64url of `{startedAt, runId}` over `ORDER BY started_at DESC, run_id DESC`. `q` matches `run_id`, `agent`, `model`, `status`, and `request` with `LIKE`. Port the trace-viewer's server-clock adoption (`Date` header) and truthful formatting rules (missing spend reads as absent, never zero).
+
+**Commands.** Existing: `node apps/trace-viewer/server.mjs --db <path>` for side-by-side comparison; `clio-coder trace runs --json`. Introduced: none beyond S1's.
+
+**Acceptance.**
+
+1. With a fixture database of 1,200 runs, paging with `limit=200` visits every run exactly once and the last page has no `nextCursor`; filters by `source` and `status` return only matching rows; an invalid cursor is `422`.
+2. Every `apps/trace-viewer` server test scenario (schema refusal, WAL check, rowid cursor bounds, receipt field omission, sidecar absence tolerance, traversal refusal for `runId`) has an equivalent passing test here.
+3. `GET .../receipt` omits `output`, `upstreamResponses`, `routeDecision`, `briefing`, `steering`; `?include=full` returns them.
+4. Live tail: a run left `running` in the fixture with events appended by the test after the stream opens delivers those events on the stream in rowid order; marking the run terminal closes the stream within about 1.5 s.
+5. Browser check recorded: runs list, filter, run page with waterfall, event payload disclosure, gates, processes, receipt panel; a running run shows the live indicator.
+6. Coverage matrix rows for trace-viewer (section 7) are updated to `absorbed` or the gap is named.
+
+**Out of scope.** Deleting the trace viewer, changing `src/cli/trace.ts`, `TraceReader.runsPage` (R2).
+
+---
+
+### S3. Sessions A: supervisor, list, new, load, streamed turns
+
+Status: `todo`. Depends on: S1. Requires root `pnpm run build` for the real child; tests use the fixture child.
+
+**Goal.** Open a workspace by path, list its sessions from the ledger, start or load a session (which spawns one `clio-coder acp` child), send a prompt, and watch the turn stream into the page. Server death is handled truthfully.
+
+**Proposed files.** `contracts/{workspaces,sessions,turns}.ts`; `server/http/routes-{workspaces,sessions}.ts`; `server/services/{workspaces,sessions,turn-projection}.ts` (port `apps/workbench/src/timeline.ts` and the projection parts of `clio-host.ts`); `server/acp/{supervisor,client,children-file}.ts`; `server/state/recent-workspaces.ts` (`<state>/web/workspaces.json`); `server/clio/adapters/sessions.ts` (`listSessionsForCwd`); `client/pages/{workspaces,sessions,session}.tsx`; `tests/fixtures/acp-fixture-child.ts` (Node, scenario by env var: `text`, `tool`, `permission`, `loop`, `slow`, `crash`), `tests/{acp-client,supervisor,sessions-http,turn-projection,kill-parent}.test.ts`.
+
+**Direction.** `POST /api/workspaces {path}` validates an absolute existing directory, canonicalises with `realpath`, stores it in the recent list, returns an id derived from the canonical path. `GET /api/workspaces/:id/sessions` reads the ledger through the reads worker (no child needed). `POST /api/workspaces/:id/sessions` spawns a child (`CLIO_CODER_WEB_CLI` → checkout `dist/cli/index.js` → PATH), `initialize` with `clientCapabilities` and the full seven-kind event opt-in, `session/new` with the canonical cwd, and records `{pid, birthToken, sessionId, workspaceId}` in `<state>/web/children.json`. `POST /api/sessions/:id/load` uses `session/load` and feeds replayed `session/update` frames through the same projection. `POST /api/sessions/:id/turns {text}` returns `202 {turnId}` and runs `session/prompt` with the transport's long timeout; `session/update` frames update the projection (revision++), which emits `turn.*` events. `GET /api/sessions/:id` returns the projection snapshot with `X-Clio-Revision`. Concurrent sessions are capped (default from E3, initial 4). Until S4 adds the permission UI, every inbound `session/request_permission` is answered immediately with the reject option and the projection records `permission.rejected {reason: "no-ui"}`; nothing is ever allowed implicitly. `children.json` rows carry the owning server's instance id, pid, and birth token plus the child's pid, birth token, session id, and workspace id (written before `initialize`, removed on reap); reconciliation on start may signal a recorded child only when the owning server is proven dead through `processAlive` and `processBirthToken` and the child pid still carries the recorded birth token. Processes without a row are never candidates. Graceful shutdown closes children.
+
+**Commands.** Existing: root `pnpm run build`; `node dist/cli/index.js acp --help`. Introduced: `CLIO_CODER_WEB_CLI=<path>` environment override; `pnpm --filter @iowarp/clio-coder-web test:acp-real` (starts the real built CLI against the OpenAI-compatible fixture the root tests use; excluded from `test`).
+
+**Acceptance.**
+
+1. Fixture child `text` scenario: a prompt produces `turn.started`, ordered `turn.text` events, `turn.finished` with `stopReason: end_turn` and the five usage fields from `_meta`; `GET /api/sessions/:id` after the turn shows the full text once.
+2. Held-snapshot race: a test hook holds the `GET /api/sessions/:id` response; a `turn.text` delta arrives; the response is released; the client harness (a Node re-implementation of the client's buffer-and-replay rule, shared with `client/api/events.ts`) ends with the delta exactly once. Also the reverse: the delta arrives before the snapshot is assembled and the snapshot's revision covers it.
+3. `session_cwd_mismatch` and `session_limit` from the real server are surfaced as `409` problems with `code: upstream_acp` and the remote code in `detail` (tested with the fixture emitting those errors).
+4. Kill-parent: start the server, open a session on the `slow` fixture, `SIGKILL` the server, assert the fixture child is alive, start a new server with the same state dir, assert the child is terminated and `GET /api/sessions` reports the session as `unknown` then `closed` with `recoveredOrphan: true` in its record. The session ledger directory under `<state>/sessions/` is byte-identical before and after reconciliation.
+4a. Two live servers: start two servers on the same state directory, open one session on each, assert that neither reconciliation touches the other's child and both children are alive after both servers have started.
+4b. Pid reuse: write a row whose child pid belongs to a different live process with a different birth token (the test spawns a sleeper), start a server, assert the sleeper is not signalled and the row is dropped.
+4c. Permission fail-safe: the `permission` fixture scenario in S3 ends with the tool not executed and `permission.rejected {reason: "no-ui"}` in the projection.
+5. Graceful `SIGTERM` to the server terminates every child within the transport grace and leaves `children.json` empty.
+6. E3 recorded: RSS and boot time of one, two, three real `clio-coder acp` children on this machine; the cap default set from it.
+7. Browser check recorded: open a workspace, start a session, send a prompt to the real CLI against the OpenAI-compatible fixture, see the stream.
+
+**Out of scope.** Permissions, cancel, settings, targets, fleet strip, session label and delete (S4).
+
+---
+
+### S4. Sessions B: permissions, cancel, safe settings, targets, fleet strip, reconnect proof
+
+Status: `todo`. Depends on: S3.
+
+**Goal.** A session is fully usable: approvals are answered from the page with truthful escalation, turns can be cancelled, the four safe settings and targets are read and changed through the child, dispatch and evidence events show as a strip, and a mid-turn reconnect resumes correctly.
+
+**Proposed files.** `contracts/{permissions,settings-safe,targets,fleet-events}.ts`; routes; `server/acp/permissions.ts` (inbound `session/request_permission` handler returning a promise resolved by the REST decision, with 45 s escalate and 10 min budget timers ported from `clio-host.ts`); `server/services/{permissions,fleet-strip}.ts`; client permission card, cancel control, settings drawer, targets panel, fleet strip; `tests/{permissions,cancel,settings-safe,targets,fleet-events,reconnect-mid-turn,stream-load}.test.ts`.
+
+**Direction.** `POST /api/sessions/:id/permissions/:permissionId {decision: allow-once|reject}`; an unanswered request is never answered implicitly; the budget expiry stops the turn through `session/cancel` and the projection records `permission.expired`. `POST /api/sessions/:id/turns/:turnId/cancel`. `GET/PATCH /api/sessions/:id/settings` map to `clio-coder/settings/get_safe` and `patch_safe` (exactly the four keys). `GET /api/sessions/:id/targets` and `POST .../targets/:targetId/probe` map to the ACP methods. `PATCH /api/sessions/:id {label}`, `DELETE /api/sessions/:id` (ledger delete through `clio-coder/session/delete`, confirmed by the client), `POST .../autonomy`. Opt into all seven `clio-coder/event` kinds and project them as `fleet.*` and `evidence.ready` events. E2 and E4 (streaming) are measured here.
+
+**Acceptance.**
+
+1. Permission fixture: the request appears as `permission.requested`; answering allow-once resolves the child's request; leaving it past the escalate timer emits `permission.escalated`; past the budget the turn stops with `stopReason: cancelled` and `permission.expired`.
+2. Cancel mid-stream ends with `stopReason: cancelled` and the projection marks the turn cancelled once.
+3. `PATCH` with a key outside the four safe keys is `422` before any ACP call.
+4. All seven event kinds from the fixture reach the stream with their payloads bounded as the server sends them; `accountability.evidenceReady` is included.
+5. Mid-turn reconnect: the SSE client is disconnected during a 1,400-event streamed turn and reconnects with `Last-Event-ID`; the final client state equals the server snapshot. E2 recorded: ring occupancy and whether `turn.text` stays replayable.
+6. Stream load (E4): the streamed-turn workload runs through the global stream with no dropped or reordered envelope and bounded server memory (recorded numbers).
+
+**Out of scope.** Global settings editing, target add or remove (S7b).
+
+---
+
+### S5. Shell, design system, browser smoke
+
+Status: `todo`. Depends on: S2, S3 (S4 preferred but not required).
+
+**Goal.** The app looks and behaves like one product: navigation, theme, empty and error states, problem toasts with instance ids, the Markdown, Prism, and Mermaid renderers in chat and docs, keyboard basics, and an automated headless-Chrome smoke with Axe.
+
+**Proposed files.** `client/design/**` (tokens, layout, components), `client/render/{markdown,Markdown,highlight,mermaid}.ts(x)` ported from `apps/workbench/src/`, `client/app.tsx` navigation (`Sessions`, `Traces`, `Toolchain`, `Docs`, `Settings`, `Fleet`, `Evidence`, `Evals`, `Library`, `System`), `scripts/browser-smoke.ts` (playwright-core against Chrome at `/usr/bin/google-chrome`, override with `--chrome=`), `DESIGN.md` (the kept rules from `apps/workbench/DESIGN_SYSTEM.md`, trimmed to what applies).
+
+**Acceptance.**
+
+1. `pnpm --filter @iowarp/clio-coder-web smoke:browser` drives home, toolchain, traces list and run, sessions list and a fixture conversation with Markdown, code, and a Mermaid diagram, at 1600, 1050, and 390 px widths, with zero Axe violations of severity serious or critical and no horizontal page overflow.
+2. Model-authored Markdown never reaches `innerHTML`; raw HTML renders as text; only `http`, `https`, `mailto` links are live (ported tests).
+3. Problem responses render a toast with `code` and the `instance` id.
+4. Client bundle size and the smoke's request failure list are recorded in the ledger.
+
+**Out of scope.** Perf harness (optional later), visual probe.
+
+---
+
+### S6. Docs
+
+Status: `todo`. Depends on: S5.
+
+**Goal.** `/docs` replaces what `clio-coder docs` offered and organises the shipped Markdown tree.
+
+**Proposed files.** `contracts/docs.ts`; `server/http/routes-docs.ts`; `server/services/docs.ts`; `server/clio/adapters/docs.ts` (tree from `docs/README.md` tables plus directory scan, page reads within `resolvePackageRoot()/docs` with `realpath` containment, a small in-memory search index built once in the reads worker, blueprint listing from `docs/html` when present); `client/pages/docs/**`; `tests/{docs-http,docs-containment,docs-search}.test.ts`.
+
+**Direction.** `GET /api/docs/tree`, `GET /api/docs/page?path=guide/x.md`, `GET /api/docs/search?q=`, `GET /api/docs/blueprints` and static `/docs-html/<name>` only when the directory exists (checkout), with the traversal and symlink protections `src/cli/docs.ts` and `tests/contracts/docs-server.test.ts` encode. Relative links between Markdown pages are rewritten to `/docs/<path>` routes; links to `docs/html/*_blueprint.html` open the blueprint route.
+
+**Acceptance.**
+
+1. Every scenario in `tests/contracts/docs-server.test.ts` (traversal, symlink escape, HEAD, 405, content types, menu synthesis, topic resolution) has an equivalent passing test against the new routes.
+2. Every Markdown page discovered under `docs/` at test time (tracked or untracked; the count is discovered, not hard-coded) renders without a broken internal link (a test walks them).
+3. Search for `trace` returns `architecture/trace-store.md` in the first three results.
+4. Coverage rows for `docs.ts` updated.
+
+**Out of scope.** Retiring `src/cli/docs.ts` (R3).
+
+---
+
+### S7a. Settings and config inspection reads
+
+Status: `todo`. Depends on: S5.
+
+**Goal.** Two read-only pages: effective settings with the layer each key came from, and the "why is Clio behaving this way" customization graph.
+
+**Proposed files.** `contracts/{settings,config-graph}.ts`; routes; `server/services/{settings,config-graph}.ts` (public projections that never include credential values, environment values, or hook argv); `server/clio/adapters/{settings,config-graph}.ts` (`readLayeredSettings(cwd)` and `buildCustomizationGraph(cwd)` in the reads worker, the graph with a 15 s deadline because its import graph is heavy); client pages `Settings` (read-only in this slice) and `Why`; `tests/{settings-http,settings-redaction,config-graph}.test.ts`.
+
+**Acceptance.**
+
+1. `GET /api/workspaces/:id/settings` returns every key with its origin layer (`built-in`, `user`, `project`, `project.local`, `cli`) from a scratch home seeded with user and project layers.
+2. The scratch home's real credential store (the config-dir `credentials.yaml` that `src/core/init.ts` creates and `scripts/smoke-real-home.sh` copies) holds a seeded value and an environment API key is set during the test; no response body contains either value.
+3. `GET /api/workspaces/:id/config-graph` returns the categories `buildCustomizationGraph` produces, and a graph that exceeds the deadline returns `unavailable` without wedging later reads.
+4. Browser check recorded for both pages.
+
+**Out of scope.** Any write.
+
+---
+
+### S7b. CLI mutation runner, targets read, targets use and remove
+
+Status: `todo`. Depends on: S7a.
+
+**Goal.** The first mutations, through fixed-argv CLI children, plus target listing without a session.
+
+**Proposed files.** `server/process-policy.ts` gains `runClioCommand` over a closed argv table; `server/services/cli-runner.ts` (bounded stdout 8 MiB, stderr 256 KiB, timeout, JSON parsed once, SIGTERM cancel, ported from the shape of `apps/workbench/clio-read-command.ts`); `contracts/targets-cli.ts`; routes; client `Targets` page and the `use` and `remove` controls; `tests/{cli-runner,targets-http,targets-mutations}.test.ts`.
+
+**Direction.** `clio-coder targets --json` is a deliberate fixed-argv bridge (the `ProvidersContract` needs the loaded domain); `targets --json --probe --target <id>` is a cancellable probe operation. Mutations as operations: `targets use <id>`, `targets remove <id>`, the identifier validated by regex before it enters argv. Both commands print terminal prose, not JSON (`src/cli/targets.ts` uses `printOk`); the operation's outcome is the exit code plus a typed follow-up read (`readLayeredSettings` or `targets --json`), and their stdout is never parsed. `targets add` only if a non-interactive `--json` form exists at the session SHA; otherwise deferred and recorded. Global settings edits beyond these are recorded as a class C candidate.
+
+**Acceptance.**
+
+1. The runner refuses any argv not in the closed table; tests assert the exact argv spawned for each allowed command and that no client string other than a validated identifier ever appears.
+2. `targets use <id>` on a scratch home changes `chat.target`, visible on the next settings read; `targets remove` removes it; both appear as finished operations whose result is the follow-up read, with no parsed prose.
+3. Cancelling a running probe terminates the child (SIGTERM observed by the fixture).
+4. A CLI exit code outside the accepted set becomes `operation_failed` with the exit code in `detail` and no stderr text in the response.
+
+---
+
+### S8a. Fleet runs, receipts, councils, gates
+
+Status: `todo`. Depends on: S5.
+
+**Goal.** A paginated fleet page: durable runs, per-run receipt, council and gate topologies.
+
+**Proposed files.** `contracts/fleet.ts`; routes; `server/services/fleet.ts`; `server/clio/adapters/fleet.ts` (own directory scan of `<state>/fleet-runs/` for pagination, `readFleetRun` per row, `councilTopologies` and `gateTopology` from `src/domains/dispatch/{council-topology,gate-topology}.ts`, receipts from `<state>/receipts/<runId>.json`); client `Fleet` pages; `tests/{fleet-http,fleet-pagination}.test.ts`.
+
+**Acceptance.** With 150 fixture fleet-run records, pagination visits each once; a corrupt record costs its row, not the listing (the seam's rule); a run page shows its receipt, council rounds, and gate decisions from fixtures; the ledger records that `MAX_FLEET_RUN_SCAN` was bypassed by the adapter's own scan and why.
+
+---
+
+### S8b. Evidence
+
+Status: `todo`. Depends on: S5, S7b (for the runner).
+
+**Goal.** Evidence inventory with pagination, artifact detail with trust, provenance, and gate decisions, and `evidence build --run <runId>` as an operation.
+
+**Proposed files.** `contracts/evidence.ts`; routes; `server/services/evidence.ts`; `server/clio/adapters/evidence.ts` (`listEvidenceOverviews`, `inspectEvidence`, `loadEvidenceTrustStatus`, `loadEvidenceRunProvenance`, `loadEvidenceGateDecisions` from `src/domains/evidence/store.ts`); the runner gains `evidence build --run <runId>` (the syntax in `src/cli/evidence.ts`; `--session` and `--eval` forms may follow); client `Evidence` pages; `tests/{evidence-http,evidence-build}.test.ts`.
+
+**Acceptance.** With 40 fixture artifacts, pagination visits each once; a missing trust file yields `verdict: unknown` for that artifact only; `evidence build --run <runId>` on a fixture run exits 0 and the follow-up inventory read shows the new artifact (its terminal prose is not parsed).
+
+---
+
+### S8c. Evals and usage
+
+Status: `todo`. Depends on: S5, S7b.
+
+**Goal.** Stored eval reports and the cross-session usage report.
+
+**Direction.** Evals: use the `src/domains/eval` store exports if a listing function exists at the session SHA; otherwise the fixed `clio-coder eval inventory --json` bridge through the runner, recorded in the ledger with the reason. Usage: `clio-coder usage report --repo <root> --days 30 --json` bridge (the root path is the canonical workspace root, never client text).
+
+**Acceptance.** Both pages render from a scratch home seeded with the root test fixtures for eval artifacts and session ledgers; the ledger states seam or bridge per collection.
+
+---
+
+### S8d. Library and catalog
+
+Status: `todo`. Depends on: S5, S7b.
+
+**Goal.** Agents, skills, prompts, fleets, plugins, extensions, and verifiers as one library view.
+
+**Direction.** Prefer the loaders exported from `src/domains/resources/index.ts` and the agents registry where the projection is simple; use the `library list --json`, `library inventory --json`, `agents --json`, `extensions list --all --json`, and `verifiers inspect --json` bridges where the CLI already folds discovery the loaders do not. Record the choice per collection. No install or remove in this slice.
+
+**Acceptance.** Every collection renders from a scratch home with the bundled library; counts match the CLI's `--json` output for the same home.
+
+---
+
+### S8e. Interop and system
+
+Status: `todo`. Depends on: S5.
+
+**Goal.** Detected external coding agents, and a system page with doctor findings, resolved paths, and versions.
+
+**Direction.** `detectInteropAgents` and `discoverInteropInventory` in the reads worker (bounded `--version` probes); `runDoctor({fix: false})` and `resolveClioDirs()`; `GET /api/meta` extended with `getVersionInfo()` fields.
+
+**Acceptance.** The interop page lists every known kind with presence; the system page shows doctor rows and the four roots; no `--fix` path is reachable from the app.
+
+---
+
+### S9. Launcher, idle-exit, process policy
+
+Status: `todo`. Depends on: S4, S5.
+
+**Goal.** The app can be opened like an application without a terminal on Linux, its process and network policy is enforced and audited, and the PWA question is answered by experiment rather than assumed.
+
+**Proposed files.** `server/main.ts` flags `--open`, `--idle-exit <ms>`, `--token <value>`, `--port <n>`, `--log-file <path>`; `server/launcher/{desktop-entry,install}.ts`; `tests/{idle-exit,launcher-linux,egress-policy,open-browser}.test.ts`.
+
+**Acceptance.**
+
+1. `--idle-exit 2000` exits about two seconds after the last client disconnects when no operation or turn is live; a live turn holds the process and exit follows its end.
+2. The app-local `launcher install --prefix <scratch>` writes a `.desktop` entry that starts the checkout server with absolute Node, tsx loader, and entry paths plus `--open --idle-exit 60000`; it works independently of the launcher's working directory. S9 cannot invoke `clio-coder web`, which does not exist until R1. `status` verifies the entry, `uninstall` removes only what it wrote; on `darwin` and `win32` the command refuses with the documented message. A manual run on this Linux machine records: entry visible in the launcher, click starts the server and opens the authenticated page, closing the page ends the process after the idle window. R1 changes the packaged launcher target to `clio-coder web --open --idle-exit 60000` and repeats this lifecycle check.
+3. The test suite runs with `globalThis.fetch` throwing; only the toolchain adapter's allowlisted fetch is exercised through injection.
+4. E8 recorded: probe flag support on the supported Node baseline and local runtime, then record the audit access set and whether `--permission` works under `tsx` where supported. An unavailable optional flag records the experiment as unsupported; it does not raise the app's minimum Node version silently.
+5. E5, only after 2 passes: a launcher mode with a fixed port and a token the launcher rewrites into the served page; then close the server, click a PWA icon, expect a live authenticated app. Ship `manifest.webmanifest` only if that passes; otherwise record "PWA deferred" and ship nothing.
+
+---
+
+### S10. Packaging rehearsal from `apps/`
+
+Status: `todo`. Depends on: S9 and every slice that absorbs a non-retired coverage row (S6, S7a, S7b, S8a, S8b, S8c, S8d, S8e), so R1 never packages an app that has not absorbed what it replaces.
+
+**Goal.** Prove the R1 layout without touching the root: bundle the server and both workers as three entries into `apps/clio-coder-web/dist/rehearsal/` with an app-local esbuild or tsup config that mirrors `tsup.config.ts` (`splitting`, `platform: node`, `external: ["node:sqlite"]`, no minify), and run them from a scratch directory with no `tsx`.
+
+**Acceptance.**
+
+1. Without `CLIO_CODER_PACKAGE_ROOT`, the rehearsal server started from `dist/rehearsal/` reports the wrong package root (the app's), demonstrating the hazard; with the variable pinned to the repo root, `/api/meta.clio` is correct and both workers start from their emitted entries.
+2. Bundle sizes of the three entries and their shared chunks are recorded, with the projected tarball delta against the 10 MB budget.
+3. A written R1 checklist with the exact `tsup.config.ts` entries, `noExternal` or `dependencies` decision, `files` globs, and manifest lines.
+
+---
+
+### R1. `clio-coder web` and the packaged install (class C)
+
+Status: `todo`. Depends on: S10. Root files: `src/cli/index.ts`, `src/cli/web.ts`, `tsup.config.ts`, `package.json`, `scripts/release-manifest.json`, `scripts/check-release.mjs` (only if budgets move), `tests/smoke/installed-package.test.ts`, `CHANGELOG.md` (Unreleased).
+
+**Direction.** `web` joins `COMMAND_HANDLERS` as a literal dynamic import of `./web.js`; `src/cli/web.ts` locates `../web/server.js` beside `dist/cli/` by URL, imports it, and runs it in the foreground with the CLI's flags forwarded. tsup entries `web/server`, `web/reads-worker`, `web/ops-worker`; the server resolves worker entries by URL beside itself, with the source-mode paths as the fallback when running under `tsx`. The root build copies `apps/clio-coder-web/dist/client/` to `dist/web/client/`. `files` gains `dist/web/**`. The manifest gains `dist/web/server.js`, `dist/web/reads-worker.js`, `dist/web/ops-worker.js`, `dist/web/client/index.html`.
+
+**Acceptance.**
+
+1. `pnpm run build` produces the three web entries and the client directory; `node scripts/check-release.mjs` passes within budgets.
+2. `tests/smoke/installed-package.test.ts` gains a case that packs, installs into a scratch prefix, proves `tsx` is not resolvable as a module from the installed package (`import.meta.resolve("tsx")` from a script inside the install root rejects, `NODE_PATH` unset, no checkout reachable), runs `clio-coder web --port 0 --token t --no-open`, reads `/api/meta`, performs one reads-worker call (`/api/toolchain/tools`) and one ops-worker call (`removeTool` on an id with nothing vendored), and asserts through a test-only diagnostic route enabled by `NODE_ENV=test` that both workers launched from `dist/web/reads-worker.js` and `dist/web/ops-worker.js` (each reports its `import.meta.url`) and that `resolvePackageRoot()` in the server and in each worker equals the installed package root.
+3. `clio-coder --version` and `clio-coder --help` load time is unchanged within noise (the boot trace shows no web chunk loaded).
+4. `pnpm run ci:release` passes in full. If the baseline docs-parity failure is still present, R1 is blocked on the other workstream resolving it and the ledger says so; the exception never counts as a pass.
+
+---
+
+### R2. Trace retirement (class C)
+
+Status: `todo`. Depends on: R1, S2 matrix rows absorbed. Root files: `src/domains/observability/trace-store.ts` (`TraceReader.runsPage({before, limit, filter})`), `src/cli/trace.ts` (remove the `ui` subcommand, its `--port` flag, `runTraceUi`, and the help line; it is obsolete, not aliased), `package.json` scripts (`trace:ui`, `test:trace-viewer`, `ci`), `docs/architecture/trace-store.md`, `README.md`, deletion of `apps/trace-viewer/`, `CHANGELOG.md`. The app's keyset SQL is replaced by the new seam in the same session.
+
+**Acceptance.** `pnpm run ci` no longer references the viewer; `clio-coder trace ui` is an unknown trace command (exit 2, the existing rule for unknown subcommands); the app's pagination tests pass against `runsPage`; root lint passes in full.
+
+### R3. Docs command becomes canonical navigation (class C)
+
+Status: `todo`. Depends on: R1, S6. Root files: `src/cli/docs.ts` loses its static server and becomes the canonical `clio-coder docs [topic]` command that starts the web server and opens `/docs[/<topic>]` (this is a deliberate product command, not a compatibility alias; the help text says what it does); `tests/contracts/docs-server.test.ts` replaced by a test of the topic-to-route mapping; help text in `src/cli/index.ts`; `README.md`, `docs/README.md`.
+
+**Acceptance.** `clio-coder docs safety` opens the app at the safety page from a checkout and from an installed package (Markdown page; blueprint when the checkout has it); no static docs server remains in `src/cli/`.
+
+### R4. Workbench deletion and references (class C)
+
+Status: `todo`. Depends on: R1, S4, S5, S7a, S7b, S8a to S8e matrix rows absorbed. Root files: delete `apps/workbench/`; `biome.json` exclusion; `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `docs/architecture/acp.md`; comments in `src/domains/evidence/detail.ts`, `src/cli/fleet-verify.ts`, `src/interactive/overlays/settings.ts`; `src/cli/uninstall.ts` removes the launcher entry the app installed (reads the same manifest the launcher writes); `CHANGELOG.md`.
+
+**Acceptance.** No active runtime, build, launch, or current operator instruction depends on `apps/workbench`, the retired `clio-coder-gui` executable, or the workbench's Deno runtime. Accurate historical records and unrelated Deno integrations may retain those names. `pnpm run ci:release` passes in full, with no baseline exception; `clio-coder uninstall --dry-run` lists the launcher entry when one exists.
+
+## 6. Command glossary
+
+| Command | Status | Notes |
+| --- | --- | --- |
+| `pnpm install --frozen-lockfile` | existing | Dependency-introducing slices use `pnpm install` after their app manifest edits, within class B |
+| `pnpm run build` (root) | existing | required before any slice that spawns the real CLI |
+| `pnpm run typecheck`, `pnpm run lint`, `pnpm run test`, `pnpm run ci` (root) | existing | lint caveat in section 0 |
+| `node apps/trace-viewer/server.mjs --db <path>` | existing | reference for S2 until R2 deletes it |
+| `node dist/cli/index.js acp --cwd <root>` | existing | the child the supervisor spawns |
+| `pnpm --filter @iowarp/clio-coder-web start | dev:server | dev:client | build | typecheck | test | openapi | verify` | introduced S1 | |
+| `pnpm run test:web` (root) | introduced S1 | class B |
+| `pnpm --filter @iowarp/clio-coder-web test:acp-real` | introduced S3 | real CLI against the OpenAI-compatible fixture; not part of `test` |
+| `pnpm --filter @iowarp/clio-coder-web smoke:browser` | introduced S5 | |
+| `node --import tsx server/main.ts --open --idle-exit <ms> --token <t> --port <n> --log-file <p>` | introduced S9 | |
+| `clio-coder web [...]`, `clio-coder web launcher install|status|uninstall` | introduced R1, S9 code | |
+
+## 7. Coverage matrix
+
+Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carried), `deferred` (named gap). Update this table in the slice that changes it.
+
+| Capability | Source | Target slice | Status |
+| --- | --- | --- | --- |
+| Run list with filter, source badge, live refresh | trace-viewer | S2 | todo |
+| Run page: headline, duration, phase waterfall, cost panel, phase facts | trace-viewer | S2 | todo |
+| Event log with every type and payload, tool spans, truncation marks | trace-viewer | S2 | todo |
+| Gates with checks and violations | trace-viewer | S2 | todo |
+| Processes panel | trace-viewer | S2 | todo |
+| Receipt panel: outcome, verification, spend, tool stats, findings, provenance; sidecar tolerance | trace-viewer | S2 | todo |
+| Server-clock adoption for live spans; pinned timestamp formatting; truthful zero and missing spend | trace-viewer | S2 | todo |
+| Read-only open, schema and WAL checks, rowid cursor | trace-viewer | S2 (via `TraceReader`) | todo |
+| Full-history pagination | new | S2 | todo |
+| Static blueprint serving, traversal and symlink protection, HEAD and 405 | `src/cli/docs.ts` | S6 | todo |
+| Topic deep link and menu synthesis | `src/cli/docs.ts` | S6 | todo |
+| Markdown docs tree, rendering, search | new | S6 | todo |
+| One ACP child per session; initialize, new, load, prompt, cancel, close | workbench | S3, S4 | todo |
+| Turn projection: text, thought, tool cards with kind, status, locations; provenance labels | workbench | S3 | todo |
+| Permission mediation with escalate and budget timers, never implicit | workbench | S4 | todo |
+| Loop-guard and dispatch event strip; `accountability.evidenceReady` | workbench (six kinds) plus the seventh | S4 | todo |
+| Safe settings get and patch (four keys), autonomy | workbench | S4 | todo |
+| Targets list and probe through the session | workbench | S4 | todo |
+| Session list, label, delete | workbench | S3, S4 | todo |
+| Recent workspaces, open by path | workbench (folder picker) | S3 | todo |
+| Bounded read-only file tree | workbench | deferred to a slice after S8e | deferred |
+| File create, move, delete with challenge | workbench | retired | retired |
+| Config inspection (customization graph) | workbench | S7a | todo |
+| Catalog: agents, skills, library, extensions, verifiers | workbench | S8d | todo |
+| Usage report | workbench | S8c (bridge) | todo |
+| Routing: offline models, profiles, bindings | workbench | S7b (bridge) | todo |
+| Dispatch status, fleet inspection, decisions | workbench | S8a | todo |
+| Interop inspection | workbench | S8e | todo |
+| Eval inventory | workbench | S8c | todo |
+| Evidence inventory and detail; receipt verify | workbench | S8b | todo |
+| Recovery: doctor and paths | workbench | S8e | todo |
+| Markdown, Prism, Mermaid rendering rules | workbench | S5 | todo |
+| Design system rules and acceptance floor | workbench | S5 | todo |
+| Browser smoke with Axe; perf workload | workbench | S5 (perf optional) | todo |
+| Deterministic ACP child fixture | workbench (Deno) | S3 (Node) | todo |
+| Deno compiled binary, `.desktop` lifecycle, `clio-coder-gui` | workbench | retired; replaced by the S9 launcher (PWA deferred unless E5 passes) | retired |
+| Artifact allowlist snapshot windows | workbench | retired | retired |
+| Host-only payload policy | workbench | retired (see review section 13, item 3) | retired |
+| Protocol v4 WebSocket and command frames | workbench | retired | retired |
+| State-dir migration and deprecated env override | workbench | retired | retired |
+| Thirteen CLI re-validation inspectors | workbench | retired | retired |
+
+## 8. Release acceptance for v0.5.0
+
+Publication is not authorized by this file. These are the checks a release candidate must pass.
+
+1. **Automatically available after a normal install.** `npm install -g @iowarp/clio-coder@<version>` on a machine without the checkout includes the API server, workers, and web assets; `clio-coder --help` prominently lists `web` and describes the app, and `clio-coder web --open` serves it without a separate download or build. `clio-coder web launcher install` succeeds on Linux and refuses with the documented message elsewhere. The application is automatically installed with the package; adding a desktop menu entry is an explicit launcher action, not an npm lifecycle side effect. State that distinction in the release instructions.
+2. **Supported platforms.** Linux x64 and WSL2 verified in CI and locally; macOS and Windows verified only to the extent a session has run them, stated in the CHANGELOG as such; no claim beyond what was run.
+3. **Version-matched assets and API.** `GET /api/meta` reports the same `clio` version as `clio-coder --version`; the client refuses a mismatched `apiVersion`; `contracts/openapi.json` in the package matches the served `/api/openapi.json`.
+4. **Lazy startup.** `CLIO_CODER_TRACE_BOOT=1 clio-coder --version` and `clio-coder --help` load no `dist/web/` chunk; the interactive TUI boot is unaffected (boot trace compared against the previous release).
+5. **Independence.** CLI, TUI, and `clio-coder acp` run with the web server absent; nothing starts it implicitly.
+6. **Source-checkout-independent verification.** The installed-package smoke (R1) passes from the packed tarball with `tsx` absent; both workers start; the package root resolves correctly in all three processes.
+7. **Gates.** `pnpm run ci:release` passes in full with no exception; the baseline lint caveat in section 0 applies to app work only, because the shell pipeline stops at the first failing gate and a partial pass proves nothing about the later ones. `scripts/check-release.mjs` budgets hold or were raised by explicit operator decision recorded in `CHANGELOG.md`.
+8. **Retirements complete.** `apps/trace-viewer` and `apps/workbench` are deleted with no dangling references; `clio-coder trace ui` no longer exists and `clio-coder docs` is the canonical navigation command per R2 and R3.
+9. **Security posture stated.** `README.md` documents loopback bind, per-launch token, the spawn chokepoint, egress limited to pinned tool downloads, and whether `--permission` is used by the launcher (E8 outcome).
+10. **CHANGELOG.** The `## <version>` section describes the app, the retirements, and the platform claims exactly.
+
+## 9. Progress ledger
+
+Append one row per session. Never rewrite history; add a correction row instead.
+
+| Date | Slice | Status | Session SHA start | Session SHA end | Root delta since reviewed SHA inspected? | Evidence and notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-11 | S0 planning | done | `1e1162f6` | `1e1162f6` | n/a | `ARCHITECTURE_REVIEW.md` and this file written; no code; baseline lint caveat recorded |
+| 2026-09-11 | S0 advisor review | done | `1e1162f6` | `1e1162f6` | HEAD unchanged | Astra accepted the architecture with E4 as the framework checkpoint; corrected unfinished-slice resume, dependency lockfile scope, checkout launcher before R1, and unconditional release gates. Planning documents only. |
+| 2026-09-11 | S1 foundation/toolchain | in-progress | `1e1162f6` | `1e1162f6` | HEAD equals reviewed and last ledger SHA; no intervening commits or seam changes | App implemented; app verify passes (19 tests, both TS programs, Biome, client build), root build/typecheck pass, live curl and Chrome install/progress/remove pass. E1 threads retained; E4 363 glue lines. Root lint has the two baseline docs failures plus the exact-ci checker conflict; checker edit exceeds class B and was not made. [Full evidence, screenshots, boundary request, and resume instructions](notes/2026-09-11-S1.md). No S2 work, commit, or push. |
+| 2026-09-11 | S1 authorized closeout | done | `1e1162f6` | `1e1162f6` | HEAD unchanged from reviewed and preceding ledger SHA; inspected the required local checker seam | Operator explicitly approved the prepared one-line checker update. Applied it without other checker changes. Frozen install, root build/typecheck, client build, and app verify (19 tests, including boundaries and OpenAPI) pass. Root lint fails only on the two documented docs-parity conditions; Biome passes with existing warnings/info and there are no new lint regressions. Earlier browser/E1/E4 evidence remains applicable to the unchanged app. [Closeout evidence](notes/2026-09-11-S1-closeout.md). S2 is next; no S2 work, commit, or push. |
+
+Class C requests discovered during S slices (append here, do not act on them in an S slice):
+
+| Date | Slice | Need | Proposed R slice |
+| --- | --- | --- | --- |
+| 2026-09-11 | S1 | Align `scripts/check-hygiene.ts:441` expected `ci` string with S1's required `test:web` addition. [One-line patch prepared, not applied](notes/S1-ci-hygiene.patch). Without this, shared S1 acceptance fails beyond the permitted docs baseline. | Explicit S1 boundary exception needed before closeout; deferring to R1 would block its own dependencies |
+| 2026-09-11 | S1 closeout resolution | The operator approved the preceding request explicitly; the prepared one-line patch is now applied. Root lint has only the two accepted baseline docs failures. | Resolved in S1 under the approved boundary exception; no R-slice action remains for this request |
+
+Pinned versions (installed in S1):
+
+| Package | Version | Where |
+| --- | --- | --- |
+| `@hono/node-server` | `2.1.1` | app dependencies |
+| `@tanstack/react-query` | `5.102.8` | app dependencies |
+| `hono` | `4.13.5` | app dependencies |
+| `react` | `19.3.0` | app dependencies |
+| `react-dom` | `19.3.0` | app dependencies |
+| `react-router` | `8.3.1` | app dependencies |
+| `typebox` | `1.3.0` | app dependencies |
+| `@apidevtools/swagger-parser` | `13.0.0` | app devDependencies |
+| `@types/node` | `24.12.2` | app devDependencies |
+| `@types/react` | `19.3.0` | app devDependencies |
+| `@types/react-dom` | `19.3.0` | app devDependencies |
+| `@vitejs/plugin-react` | `6.1.1` | app devDependencies |
+| `tsx` | `4.22.4` | app devDependencies |
+| `typescript` | `6.0.3` | app devDependencies |
+| `vite` | `8.3.0` | app devDependencies |
+
+## 10. Handoff note format
+
+End every session by appending the ledger row and writing, in the same row's notes or a linked file under `apps/clio-coder-web/notes/<date>-<slice>.md`: what was built, the exact acceptance checks that ran with pass or fail, anything skipped and why, measurements taken for the bounded experiments, and the next ready slice. If the session ends mid-slice, mark the row `in-progress`, list the files touched, and state what the next session must finish before the acceptance list can be run. Do not commit unless the operator asked in that session.
