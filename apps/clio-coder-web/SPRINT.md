@@ -4,7 +4,7 @@ This file is the executable plan. A fresh coding session executes it without the
 
 ## 0. Baseline and how to start a session
 
-**Current operator authorization (2026-09-11).** Continue through all S slices, including lettered slices, until implemented, tested, and verified. This overrides the one-slice-per-session stopping rule below; retain acceptance checks and a ledger entry for each slice. The operator subsequently authorized atomic local commits as work completes: "commit atomically as you go. the rule is no push". This overrides earlier no-commit instructions. No push, publication, branch change, or R-slice work is authorized. Root-edit boundaries remain in force.
+**Current operator authorization (2026-09-11).** Continue through all S slices, including lettered slices, until implemented, tested, and verified. This overrides the one-slice-per-session stopping rule below; retain acceptance checks and a ledger entry for each slice. The operator subsequently authorized atomic local commits as work completes: "commit atomically as you go. the rule is no push". This overrides earlier no-commit instructions. Latest steering prioritizes REST API coverage and parity for future GUI sessions. Keep `apps/workbench/`, disconnect it from builds, publication, and gates; remove the absorbed trace viewer and its active references. These specific root integration changes are authorized exceptions; other R-slice work, push, publication, and branch changes remain unauthorized. Keep temporary reports, audits, screenshots, and prompts outside the checkout; record durable implementation progress in this existing ledger. The operator moved the unrelated docs audit to ignored `.superpowers/`; recheck hygiene without the old baseline exception if it now passes.
 
 **Reviewed baseline.** Branch `v048`, SHA `1e1162f687a610f19f27a34495ad06251b237260`, 2026-09-11. Every existing path, symbol, and behavior named in this file was read at that SHA. Every path under `apps/clio-coder-web/` other than the three planning documents is a proposal until the slice that creates it; if a slice finds a better layout it records the change in the ledger. A future session starts at whatever `git rev-parse HEAD` says; that is the session SHA and it is never assumed to equal the reviewed one.
 
@@ -61,7 +61,7 @@ Nothing else under the root is edited before the R slices. If a slice discovers 
 
 ### 3.3 Class C: root integration, slices R1 to R4 (v0.5.0)
 
-`src/cli/index.ts` and `src/cli/web.ts`; `tsup.config.ts` entries `web/server`, `web/reads-worker`, `web/ops-worker` plus `noExternal` or `dependencies` for `hono` and `@hono/node-server`; root `devDependencies`; `package.json` `files`; `scripts/release-manifest.json`; `scripts/check-release.mjs` budgets if measurement demands; `tests/smoke/installed-package.test.ts`; `src/cli/trace.ts` (removal of the obsolete `trace ui` subcommand); `TraceReader.runsPage` in `src/domains/observability/trace-store.ts`; `src/cli/docs.ts` replaced by a canonical navigation command into the app (not a compatibility alias) and `tests/contracts/docs-server.test.ts`; any `export` keyword added under `src/`; deletion of `apps/trace-viewer` and `apps/workbench` with their root references (`package.json` scripts `trace:ui`, `test:trace-viewer`, `ci`; `biome.json`; `README.md`; `CONTRIBUTING.md`; `ROADMAP.md`; `docs/architecture/acp.md`; `docs/architecture/trace-store.md`; comments in `src/domains/evidence/detail.ts`, `src/cli/fleet-verify.ts`, `src/interactive/overlays/settings.ts`); `src/cli/uninstall.ts`; `CHANGELOG.md`.
+`src/cli/index.ts` and `src/cli/web.ts`; `tsup.config.ts` entries `web/server`, `web/reads-worker`, `web/ops-worker` plus `noExternal` or `dependencies` for `hono` and `@hono/node-server`; root `devDependencies`; `package.json` `files`; `scripts/release-manifest.json`; `scripts/check-release.mjs` budgets if measurement demands; `tests/smoke/installed-package.test.ts`; `src/cli/trace.ts` (removal of the obsolete `trace ui` subcommand); `TraceReader.runsPage` in `src/domains/observability/trace-store.ts`; `src/cli/docs.ts` replaced by a canonical navigation command into the app (not a compatibility alias) and `tests/contracts/docs-server.test.ts`; any `export` keyword added under `src/`; deletion of `apps/trace-viewer` and disconnection of retained `apps/workbench` with their root references (`package.json` scripts `trace:ui`, `test:trace-viewer`, `ci`; `biome.json`; `README.md`; `CONTRIBUTING.md`; `ROADMAP.md`; `docs/architecture/acp.md`; `docs/architecture/trace-store.md`; comments in `src/domains/evidence/detail.ts`, `src/cli/fleet-verify.ts`, `src/interactive/overlays/settings.ts`); `src/cli/uninstall.ts`; `CHANGELOG.md`.
 
 ### 3.4 Seam list to re-inspect when the SHA moves
 
@@ -292,7 +292,9 @@ Status: `done`. Depends on: S5.
 
 ### S7b. CLI mutation runner, targets read, targets use and remove
 
-Status: `todo`. Depends on: S7a.
+Status: `done`. Depends on: S7a.
+
+**Closeout:** 66 app tests and 73 Chrome/Axe checks pass, including real CLI selection/removal, routing parity, SIGTERM cancellation, sanitized failures, and large-result retention. Root typecheck and lint pass fully after the operator moved the unrelated audit.
 
 **Goal.** The first mutations, through fixed-argv CLI children, plus target listing without a session.
 
@@ -428,9 +430,9 @@ Status: `todo`. Depends on: R1, S6. Root files: `src/cli/docs.ts` loses its stat
 
 **Acceptance.** `clio-coder docs safety` opens the app at the safety page from a checkout and from an installed package (Markdown page; blueprint when the checkout has it); no static docs server remains in `src/cli/`.
 
-### R4. Workbench deletion and references (class C)
+### R4. Workbench retention and disconnection (operator amendment)
 
-Status: `todo`. Depends on: R1, S4, S5, S7a, S7b, S8a to S8e matrix rows absorbed. Root files: delete `apps/workbench/`; `biome.json` exclusion; `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `docs/architecture/acp.md`; comments in `src/domains/evidence/detail.ts`, `src/cli/fleet-verify.ts`, `src/interactive/overlays/settings.ts`; `src/cli/uninstall.ts` removes the launcher entry the app installed (reads the same manifest the launcher writes); `CHANGELOG.md`.
+Status: `todo`. Depends on: R1, S4, S5, S7a, S7b, S8a to S8e matrix rows absorbed. Root files: retain `apps/workbench/` as reference source; exclude it from pnpm workspace builds, publication, and gates; preserve its `biome.json` exclusion; `README.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `docs/architecture/acp.md`; comments in `src/domains/evidence/detail.ts`, `src/cli/fleet-verify.ts`, `src/interactive/overlays/settings.ts`; `src/cli/uninstall.ts` removes the launcher entry the app installed (reads the same manifest the launcher writes); `CHANGELOG.md`.
 
 **Acceptance.** No active runtime, build, launch, or current operator instruction depends on `apps/workbench`, the retired `clio-coder-gui` executable, or the workbench's Deno runtime. Accurate historical records and unrelated Deno integrations may retain those names. `pnpm run ci:release` passes in full, with no baseline exception; `clio-coder uninstall --dry-run` lists the launcher entry when one exists.
 
@@ -481,7 +483,7 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Config inspection (customization graph) | workbench | S7a | absorbed (S7a) |
 | Catalog: agents, skills, library, extensions, verifiers | workbench | S8d | todo |
 | Usage report | workbench | S8c (bridge) | todo |
-| Routing: offline models, profiles, bindings | workbench | S7b (bridge) | todo |
+| Routing: offline models, profiles, bindings | workbench | S7b (bridge) | absorbed (S7b) |
 | Dispatch status, fleet inspection, decisions | workbench | S8a | todo |
 | Interop inspection | workbench | S8e | todo |
 | Eval inventory | workbench | S8c | todo |
@@ -509,7 +511,7 @@ Publication is not authorized by this file. These are the checks a release candi
 5. **Independence.** CLI, TUI, and `clio-coder acp` run with the web server absent; nothing starts it implicitly.
 6. **Source-checkout-independent verification.** The installed-package smoke (R1) passes from the packed tarball with `tsx` absent; both workers start; the package root resolves correctly in all three processes.
 7. **Gates.** `pnpm run ci:release` passes in full with no exception; the baseline lint caveat in section 0 applies to app work only, because the shell pipeline stops at the first failing gate and a partial pass proves nothing about the later ones. `scripts/check-release.mjs` budgets hold or were raised by explicit operator decision recorded in `CHANGELOG.md`.
-8. **Retirements complete.** `apps/trace-viewer` and `apps/workbench` are deleted with no dangling references; `clio-coder trace ui` no longer exists and `clio-coder docs` is the canonical navigation command per R2 and R3.
+8. **Retirements complete.** `apps/trace-viewer` is deleted with no dangling active references; `apps/workbench` is retained as reference source and disconnected from builds, publication, and gates; `clio-coder trace ui` no longer exists and `clio-coder docs` is the canonical navigation command per R2 and R3.
 9. **Security posture stated.** `README.md` documents loopback bind, per-launch token, the spawn chokepoint, egress limited to pinned tool downloads, and whether `--permission` is used by the launcher (E8 outcome).
 10. **CHANGELOG.** The `## <version>` section describes the app, the retirements, and the platform claims exactly.
 
@@ -534,6 +536,8 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | S6 | done | `2cc31787` | `2cc31787` (pre-commit) | Root source seams unchanged; S5 lockfile delta inspected, only its app importer changed. | Docs tree, contained reads, heading/link routes, search and sandboxed blueprints. Verify: 58 tests and 49 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Walk: 60 Markdown pages, 279 live internal links, 59 blueprints. Three outside-repository references in the unrelated draft remain visibly unavailable. Root typecheck PASS, lint baseline only. No dependencies or root edits. [Evidence](notes/2026-09-11-S6.md). S7a next. |
 
 | 2026-09-11 | S7a | done | `1c5dd3f6` | `1c5dd3f6` (pre-commit) | S6 is app-only; no root seam changes since reviewed baseline. | Effective settings and customization graph through lazy worker adapters. Canonical leaf/source, credential/env/argv redaction and no-write tests PASS; graph 15-second deadline and later reads PASS. Verify: 60 tests and 61 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Root typecheck PASS, lint baseline only. No dependencies/root edits. Projections remove sensitive data before worker RPC; graph transitive imports stay in the reads worker. [Evidence](notes/2026-09-11-S7a.md). S7b next. |
+
+| 2026-09-11 | S7b | done | `9b786872` | `9b786872` (pre-commit) | S7a inspected; root Pi patch unchanged since its earlier keyboard commit. No root source or dependency changes in this slice. | Fixed-argv CLI runner (four children, 60 s, stdout 8 MiB/stderr 256 KiB), targets list/probe/use/remove and offline routing REST APIs with typed follow-up results; Targets/Routing pages. Real CLI mutations, routing parity, strict argv/JSON, error redaction and cancellation/reaping PASS. Large terminal results use REST refetch from SSE; retention 256 records/16 MiB. Verify: 66 tests and 73 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Root typecheck/lint PASS; old docs baseline resolved by operator. Targets add deferred: configure JSON is inspection, not a non-interactive add contract; other global writes remain class C candidates. All reports now outside checkout under `/var/tmp/clio-web-verification/`; browser report `clio-web-browser-gwtgPT/report.json`. Operator authorized retaining/disconnecting Workbench and retiring trace viewer; that separate cleanup precedes S8a. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
@@ -564,4 +568,4 @@ Pinned versions (installed in S1):
 
 ## 10. Handoff note format
 
-End every session by appending the ledger row and writing, in the same row's notes or a linked file under `apps/clio-coder-web/notes/<date>-<slice>.md`: what was built, the exact acceptance checks that ran with pass or fail, anything skipped and why, measurements taken for the bounded experiments, and the next ready slice. If the session ends mid-slice, mark the row `in-progress`, list the files touched, and state what the next session must finish before the acceptance list can be run. Do not commit unless the operator asked in that session.
+End every session by appending the ledger row and recording in that row (no new temporary notes, audits, screenshots, or prompts inside the checkout): what was built, the exact acceptance checks that ran with pass or fail, anything skipped and why, measurements taken for the bounded experiments, and the next ready slice. If the session ends mid-slice, mark the row `in-progress`, list the files touched, and state what the next session must finish before the acceptance list can be run. Do not commit unless the operator asked in that session.
