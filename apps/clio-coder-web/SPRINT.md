@@ -313,7 +313,9 @@ Status: `done`. Depends on: S7a.
 
 ### S8a. Fleet runs, receipts, councils, gates
 
-Status: `in-progress`. Depends on: S5.
+Status: `done`. Depends on: S5.
+
+**Closeout:** 67 app tests and 82 Chrome/Axe checks pass. Fleet history walks all 150 fixtures exactly once beyond the root scan cap, isolates corrupt records and escaping receipt symlinks, and displays receipts, council rounds, and verified gates. Root typecheck/lint pass.
 
 **Goal.** A paginated fleet page: durable runs, per-run receipt, council and gate topologies.
 
@@ -488,7 +490,7 @@ Status values: `todo`, `absorbed` (with slice), `retired` (deliberately not carr
 | Catalog: agents, skills, library, extensions, verifiers | workbench | S8d | todo |
 | Usage report | workbench | S8c (bridge) | todo |
 | Routing: offline models, profiles, bindings | workbench | S7b (bridge) | absorbed (S7b) |
-| Dispatch status, fleet inspection, decisions | workbench | S8a | todo |
+| Dispatch status, fleet inspection, decisions | workbench | S8a | absorbed (S8a) |
 | Interop inspection | workbench | S8e | todo |
 | Eval inventory | workbench | S8c | todo |
 | Evidence inventory and detail; receipt verify | workbench | S8b | todo |
@@ -544,6 +546,8 @@ Append one row per session. Never rewrite history; add a correction row instead.
 | 2026-09-11 | S7b | done | `9b786872` | `9b786872` (pre-commit) | S7a inspected; root Pi patch unchanged since its earlier keyboard commit. No root source or dependency changes in this slice. | Fixed-argv CLI runner (four children, 60 s, stdout 8 MiB/stderr 256 KiB), targets list/probe/use/remove and offline routing REST APIs with typed follow-up results; Targets/Routing pages. Real CLI mutations, routing parity, strict argv/JSON, error redaction and cancellation/reaping PASS. Large terminal results use REST refetch from SSE; retention 256 records/16 MiB. Verify: 66 tests and 73 Chrome checks PASS, zero Axe/overflow/errors/failed requests. Root typecheck/lint PASS; old docs baseline resolved by operator. Targets add deferred: configure JSON is inspection, not a non-interactive add contract; other global writes remain class C candidates. All reports now outside checkout under `/var/tmp/clio-web-verification/`; browser report `clio-web-browser-gwtgPT/report.json`. Operator authorized retaining/disconnecting Workbench and retiring trace viewer; that separate cleanup precedes S8a. |
 
 | 2026-09-11 | Operator retirement exception | done | `ba4fe00d` | `ba4fe00d` (pre-commit) | Explicit user authorization overrides the affected root boundaries. Removed only trace UI code/flag; no ACP, provider, persistence, or Pi patch changes. | Removed trace viewer and active command/docs/gate references; retained Workbench byte-for-byte, excluded its workspace importer and namespace gate, preserved Biome exclusion and private publication status. Frozen install PASS (two workspace projects), app typecheck PASS, trace contract 5 PASS. Full `ci:release` PASS: root 2,102 passed / 1 Windows-only skip, web 66 passed, hygiene 16 checks, package 1,752 files / 8.54 MB packed / 45.93 MB unpacked. Log `/var/tmp/clio-web-verification/retirement-ci-release.log`. No audit or temporary artifacts added to the checkout. S8a started; root seam replacement and packaged launcher integration remain deferred. |
+
+| 2026-09-11 | S8a | done | `09ecab7a` | `09ecab7a` (pre-commit) | Reviewed operator retirement delta: trace CLI removal, workspace/lock and gate changes; canonical dispatch/store seams unchanged. | Seven fleet REST reads: keyset-paginated roots and dispatches, individual records, full receipts, councils and gates, with pages consuming these APIs. Own directory scan bypasses root `MAX_FLEET_RUN_SCAN=64` to reach all records; scan rejects beyond 100,000 entries, artifact reads bounded to 8 MiB and realpath-contained. Uses canonical `readFleetRun`, read-only ledger listing, `councilTopologies`, and `gateTopology`. Council (four groups/256 rows) and gate (eight decisions/128 files) windows remain canonical and expose truncation. Fixture 150 roots visited exactly once, corrupt rows isolated, two council rounds and authenticated gate rendered; oversized-ledger error regression PASS. Verify: 67 tests and 82 Chrome checks PASS, zero Axe/overflow/errors; final typecheck/lint and focused storage regression PASS, root typecheck/lint PASS. Browser report `/var/tmp/clio-web-verification/clio-web-browser-uO8QpN/report.json`. No dependency/root changes. S8b next. |
 
 Class C requests discovered during S slices (append here, do not act on them in an S slice):
 
