@@ -72,7 +72,7 @@ The measurement snapshot below was originally backed by
 suite. Their names remain in the dated command transcripts below only to make
 the recorded method auditable; the commands are not current invocations.
 Current correctness coverage lives in
-`tests/contracts/rendering-invariants.test.ts`, and
+`tests/extended/rendering-invariants.test.ts`, and
 `tests/smoke/real-binary-boot.test.ts` exercises the built binary. Neither is a
 replacement glass-latency benchmark. `CLIO_CODER_RENDER_TRACE` remains the
 supported way to capture a live render trace for a fresh measurement campaign.

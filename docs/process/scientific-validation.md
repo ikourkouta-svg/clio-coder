@@ -140,5 +140,5 @@ File readback establishes artifact inspection, not executed scientific validatio
    - If mutating tool calls occurred in that window without executed validation evidence or a `limitation` receipt, `finishContractRegistration` (`src/domains/safety/finish-contract-registration.ts`) emits a `request_continuation` middleware effect accompanied by a reminder (`HIGH_RIGOR_REVALIDATION_MESSAGE`). At normal rigor, it emits an advisory reminder without blocking.
    - The gate checks structural evidence presence; it does not grade the empirical correctness of scientific code. Runtime turn budgets, deadline limits, operator cancellation, and tool failures still apply.
    - A limitation receipt never converts missing or failing checks into a pass; it formally records the limitation so callers and operators know the scientific result is incomplete.
-   - Verified by contracts `tests/contracts/materio-plugin.test.ts` and `tests/contracts/safety-policy-remediation.test.ts`.
+   - Verified by contracts `tests/extended/materio-plugin.test.ts` and `tests/extended/safety-policy-remediation.test.ts`.
 
