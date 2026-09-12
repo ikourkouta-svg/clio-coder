@@ -1,8 +1,5 @@
 # Clio Coder Scientific Validation Contracts
 
-> **Visual blueprint:** The source checkout includes the complete
-> [Clio Coder Scientific Validation Contracts visual reference](https://github.com/iowarp/clio-coder/blob/main/docs/html/validation_blueprint.html).
-
 Scientific software development cannot treat simple file presence as proof of correctness. A simulation script that crashes on rank 48, or writes out NetCDF arrays filled with `NaN`s, may still successfully write a file to the disk. 
 
 Clio Coder recognizes a **scientific validation contract** as an opt-in signal for a higher evidence bar. One strict loader in `src/domains/safety/validation-contract.ts` reads the first of `.clio-coder/validation.yaml`, `.clio-coder/validation.yml`, `validation.yaml`, or `validation.yml` at the workspace root and parses it under the version-1 schema below. A contract that parses raises the default rigor level to `high`. A contract that does not parse (empty, malformed YAML, unknown field, unsupported version, over the 256 KiB cap) leaves rigor at `normal` and is diagnosed with the exact fault: `clio-coder doctor` reports it in the `validation contract` row, the interactive session prints it once at startup, and `clio-coder verifiers author` repeats it. A Markdown `VALIDATION.md` is recognized as present but is never parsed and never raises rigor on its own; it is advisory prose for developers, project agents, and external validators.

@@ -1,8 +1,5 @@
 # Release-Cut Checklist
 
-> **Visual blueprint:** The source checkout includes the complete
-> [Release-Cut Checklist visual reference](https://github.com/iowarp/clio-coder/blob/main/docs/html/release_checklist_blueprint.html).
-
 This document provides the standard procedure for cutting a release of Clio Coder.
 Releases are cut from an annotated tag on canonical main. The GitHub release is
 produced by GitHub Actions, while package publication to npm is an authorized manual

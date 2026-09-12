@@ -1,13 +1,13 @@
 # Documentation coverage and source-alignment audit
 
-> **Visual blueprint:** The source checkout includes the complete
-> [Documentation coverage and source-alignment audit visual reference](https://github.com/iowarp/clio-coder/blob/main/docs/html/documentation_coverage_blueprint.html).
-
 This is the page-level audit for Clio Coder 0.4.2. The source comparison is
 pinned to commit `ff56ea3e`. A disagreement means that a current factual claim,
 default, identifier, path, schema, or command differs from the implementation at
 that commit. Historical records are evaluated as dated evidence and are not
 treated as current operator guidance.
+
+The HTML coverage below is historical. The current application renders the
+Markdown source directly; the parallel HTML tree has been retired.
 
 ## Headline
 

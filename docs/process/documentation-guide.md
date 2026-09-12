@@ -1,8 +1,5 @@
 # Documentation Standards and Codebase Alignment
 
-> **Visual blueprint:** The source checkout includes the complete
-> [Documentation Standards and Codebase Alignment visual reference](https://github.com/iowarp/clio-coder/blob/main/docs/html/documentation_blueprint.html).
-
 Clio Coder is an experimental community alpha. Documentation should help contributors and early users work from the source of truth without overstating maturity. When docs drift, prefer the current source and tests over older prose or aspirational roadmap notes.
 
 ---
@@ -33,7 +30,7 @@ Classify claims clearly:
 | --- | --- | --- |
 | [README.md](../../README.md) | `CHANGELOG.md`, package metadata, release receipts | Product overview, install, first run, alpha framing, and release status. |
 | [docs/README.md](../README.md) | This docs directory | Documentation hub. |
-| [documentation-guide.md](documentation-guide.md) | `docs/**`, `src/**`, `tests/**` | Documentation structure, source ownership, writing rules, and blueprint policy. |
+| [documentation-guide.md](documentation-guide.md) | `docs/**`, `src/**`, `tests/**` | Documentation structure, source ownership, writing rules, and rendering policy. |
 | [commands-and-modes.md](../guide/commands-and-modes.md) | `src/cli/index.ts`, `src/cli/args.ts`, `src/interactive/slash-commands.ts`, `src/domains/dispatch/**` | CLI commands, headless run flags (`--session`, `--continue`, `--json-events`), session continuity, `--json` wire projection promise, slash commands, keybindings, live steering. |
 | [context-engine.md](../architecture/context-engine.md) | `src/domains/context/**`, `src/domains/session/context-accounting.ts`, `src/domains/session/context-ledger.ts`, `src/domains/session/compaction/` | Context window resolution, per-model probe capabilities, token accounting, snapshots, the three compaction mechanisms, model-driven `clio-coder context init`, format v4 session enforcement. |
 | [context-working-set.md](../architecture/context-working-set.md) | `src/domains/context/working-set/**`, `src/domains/session/entries.ts`, `src/interactive/turn-context.ts` | Working-set vocabulary, eviction as a projection, the `contextEviction` / `contextRecall` records, the marker contract, the `age-horizon` and `structural-v1` policies, recall semantics, and the operator surfaces. |
@@ -130,25 +127,21 @@ Use alerts sparingly:
 
 ---
 
-## Blueprint coverage and format strategy
+## One source, generated presentation
 
-Clio Coder maintains two complementary documentation formats:
+The Markdown tree is the canonical reference for people and agents. The web
+application generates the reading view, navigation, search index and heading
+outline from those same files. It supplies the theme, code-copy controls and
+safe diagram rendering. Do not author or regenerate parallel HTML documents.
 
-1. **Markdown documents (`docs/guide/**/*.md`, `docs/architecture/**/*.md`, `docs/process/**/*.md`, and `docs/history/**/*.md`)**: The canonical reference for coding agents, developers, and maintainers, with `docs/README.md` as the hub. They optimize for retrievability, exact enumerations, schema tables, typed TypeScript contracts, and source citations (`src/...:line`).
-2. **HTML blueprints (`docs/html/*_blueprint.html`)**: One visual counterpart per Markdown page for human readers. Each blueprint carries the complete canonical prose plus navigation and copy affordances, and declares its source in `meta[name="clio-markdown-source"]`.
+Keep `docs/README.md` organized around reader goals. Its linked tables define
+the navigation groups; all discovered Markdown pages also appear in the full
+inventory. Use descriptive headings and relative links so the renderer can
+create stable anchors and keep navigation inside the application.
 
-### Blueprint Creation Policy
-
-Blueprint coverage is explicit rather than inferred from document style. The
-page-level audit lives in
-[`documentation-coverage.md`](documentation-coverage.md). Every canonical Markdown page
-has a dedicated blueprint. Recheck the complete inventory during each release cut. `docs/html/index.html` groups those counterparts by
-the same Guide, Architecture, Process, and History tree, while a source meta tag
-provides the one-to-one machine-readable mapping. Every mapping must remain
-unique, complete, and free of orphaned Markdown or HTML pages.
-`pnpm run lint` rejects any absent named blueprint, enforces that mapping, and
-compares every extractable `clio-coder <command>` string and `CLIO_CODER_*`
-name in each counterpart.
+`pnpm run lint` checks source-corpus coverage and rejects links to retired HTML.
+The web documentation tests walk every page, verify its rendered heading targets
+and internal links, and check that unsafe content cannot become executable HTML.
 
 ---
 
@@ -162,7 +155,7 @@ When a feature changes:
 4. If behavior affects safety, sessions, receipts, prompts, targets, or dispatch, update both README-level user docs and the deeper guide.
 5. Run a lightweight link check for changed Markdown.
 6. For release docs, verify version badges/sections match `package.json` and `CHANGELOG.md`.
-7. Run `pnpm run lint` to verify Markdown and HTML blueprint parity.
+7. Run `pnpm run lint` and the web documentation tests to verify corpus coverage, links and rendering.
 
 Suggested local link check:
 
