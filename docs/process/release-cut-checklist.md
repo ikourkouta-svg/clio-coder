@@ -13,16 +13,22 @@ canonical remote state or publishes immutable packages.
 ## Part 1: Candidate Preparation on a Local Compact Branch
 
 Maintainers prepare release candidates on a local-only compact branch named after
-the version without punctuation, such as `v046` for version `0.4.6`. Dotted branch
+the version without punctuation, such as `v048` for version `0.4.8`. Dotted branch
 names like `v0.4.6` are forbidden because dotted names belong exclusively to immutable
 tags. The canonical repository hosts only `main`, and no release candidate branch is
 ever pushed to canonical origin.
 
-1. Ensure the working tree is clean and updated from canonical origin:
+1. Inspect `git status --short` and the current branch. Reuse an existing candidate
+   branch; create one only when starting a new release from canonical origin:
 
    ```bash
-   git checkout -b v046 origin/main
+   git checkout -b v048 origin/main
    ```
+
+   Review all changes since the previous release, using an explicit tag ref such
+   as `git log refs/tags/v0.4.7..HEAD`. Release notes must cover the runtime and
+   terminal changes as well as optional application surfaces. Preserve user work
+   and do not create a second candidate branch during a resumed closeout.
 
 2. Update `version` in `package.json` and `assets/acp-registry/agent.json` to the
    release version. Update the README's source-install tag and remove any
@@ -31,7 +37,9 @@ ever pushed to canonical origin.
 
 3. Retitle the active changelog section in `CHANGELOG.md` from `## Unreleased` to
    `## <version> - YYYY-MM-DD`. The release gate in `scripts/check-release.mjs` requires
-   the first version header to match the version in `package.json`.
+   a dated matching heading for a publish or tag context. Development branches
+   may keep `## Unreleased`; passing the development gate alone does not establish
+   that a versioned release is ready.
 
 4. Commit the release candidate preparation locally:
 
@@ -43,9 +51,12 @@ ever pushed to canonical origin.
 
 Run deterministic local checks on the candidate commit before requesting authorization.
 
-1. Execute the release gate:
+1. Keep verification artifacts outside the checkout, then execute the release gate:
 
    ```bash
+   clio_verify_dir="$(mktemp -d "${TMPDIR:-/tmp}/clio-coder-release.XXXXXX")"
+   export TMPDIR="$clio_verify_dir"
+   pnpm install --frozen-lockfile
    pnpm run ci:release
    ```
 
@@ -54,7 +65,14 @@ Run deterministic local checks on the candidate commit before requesting authori
    the build, the contract and smoke test suites, web application tests, and dist integrity.
    The packaging audit checks executable entry shebangs, ensures forbidden files like
    source maps and caches are omitted, verifies runtime resources from `scripts/release-manifest.json`,
-   and enforces size limits (10 MB packed, 50 MB unpacked).
+   and enforces size limits (12 MB packed, 55 MB unpacked). It includes the actual
+   installed-tarball smoke, with isolated state and no source-checkout dependency.
+
+   For web changes, also run `pnpm --filter @iowarp/clio-coder-web verify` for both
+   TypeScript programs and headless Chrome accessibility/navigation checks. Record
+   the operating system, Node version, skipped checks and live-model evidence
+   separately. Verify the minimum supported Node version for package/lifecycle
+   changes; a Linux pass does not establish macOS or Windows coverage.
 
 2. Optionally validate a live model turn against a configured target:
 
@@ -84,7 +102,9 @@ Run deterministic local checks on the candidate commit before requesting authori
 
 5. Validate an installed tarball in a clean temporary directory:
 
-   Create a temporary directory, pack the tarball, install it via npm, and verify
+   Use the installed-package smoke from the gate as the automated proof. For an
+   additional manual check, pack into the external verification directory with
+   `npm pack --pack-destination "$clio_verify_dir"`, install it via npm, and verify
    installed binary lifecycle commands in an isolated environment with an empty `CLIO_CODER_HOME`:
 
    ```bash
@@ -93,6 +113,15 @@ Run deterministic local checks on the candidate commit before requesting authori
    clio-coder doctor
    clio-coder uninstall --dry-run
    ```
+
+   Check the primary user path: configure a target, open the TUI, and complete a
+   headless turn. The web app ships with the package but opening it and installing
+   a desktop entry or background service are explicit user actions, never npm
+   installation side effects. Nothing in CLI/TUI/ACP startup requires the web server.
+
+6. Once the candidate has a release version and dated notes, run the strict local
+   release-mode audit: `CLIO_CODER_RELEASE_CONTEXT=publish node scripts/check-release.mjs`.
+   This validates publication prerequisites without publishing anything.
 
 ## Part 3: Candidate Review and Authorization Boundary
 
@@ -119,7 +148,7 @@ an immutable package. Do not execute any of them without explicit maintainer aut
 
    ```bash
    git checkout main
-   git merge --ff-only v046
+   git merge --ff-only v048
    ```
 
 4. Verify that local `main` matches the reviewed candidate SHA exactly.
@@ -211,7 +240,7 @@ Publishing to npm is a manual maintainer step performed from the tagged commit.
 3. Remove the local compact candidate branch:
 
    ```bash
-   git branch -d v046
+   git branch -d v048
    ```
 
    The canonical repository remains in its steady state containing only `main` and immutable tags.
@@ -220,4 +249,6 @@ Publishing to npm is a manual maintainer step performed from the tagged commit.
 
 npm package publication is irreversible. A published version cannot be removed or overwritten.
 Any issue discovered after publication must be resolved through a subsequent release. Prior
-to pushing git tags or publishing to npm, local candidate commits can be amended or reset freely.
+to pushing git tags or publishing to npm, correct the local candidate and rerun
+the affected gates. Preserve unrelated work; do not reset or rewrite another
+workstream as part of release preparation.
