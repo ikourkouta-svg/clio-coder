@@ -4,9 +4,6 @@ Qualify one committed candidate and its exact npm tarball. Publication uses a fa
 preflight of that evidence. Development investigations are separate and are never
 implicitly repeated by a publish lifecycle hook.
 
-The maintainer withdrew v0.4.8. Do not recreate its release or tag as part of pipeline
-verification. Preparing a subsequent version and publishing it require maintainer intent.
-
 ## Prepare locally
 
 1. Inspect `git status --short --branch`. Preserve operator work. Use one local
