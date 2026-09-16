@@ -1,5 +1,11 @@
 # v0.4.9 coordinator handoff
 
+## Fresh closeout status (2026-09-16)
+
+The operator-authorized /usage demo was removed after a backup. A fresh Astra XHigh review found and repaired MCP result validation, structured-only numeric preservation, and overlapping server ownership; independent precision closure passed and P landed as `dab9abc4`. Q's measured Qwopus reasoning vocabulary and qualified provenance wording also passed independent review and land in the commit containing this update. The successful current-source live probe explicitly sent xhigh on the same route that previously failed with downstream high rejection. OpenRouter user credentials and an explicitly tested alternate free route were connected outside the repository.
+
+The old ignored build output failed preflight after the demo, and the new fixes change the source candidate. Final qualification is pending after this clean closeout commit; only the source-bound external receipt can establish success. See `v049-release-gates.md` for the first failed precision review, passing closure, exact test evidence, skipped investigations, and closeout scratchpad. The coordinator next runs frozen install and ci:release, installs the existing qualified build locally without another build, and performs the live TUI walkthrough in the isolated scratch workspace. No remote publication is authorized.
+
 ## Successor coordinator status (2026-09-16)
 
 The successor landed D as `4ef9277e` after D6 closed the blocking findings and D7 passed the final diagnostic closure review. H landed as `021ec049` after H3 passed the final process-group ownership closure. Both commits were made with passing typecheck, scoped Biome, and slice tests. The final coordinator integration run passed 118 tests with one Windows-only skip. H's final reviewer run passed 177 tests.
