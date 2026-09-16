@@ -71,7 +71,7 @@ Every field except `version` is optional. Strings are capped at 4096 bytes (`not
 1. **`version`:** Required, exactly `1`.
 2. **`task`:** One string describing the work the contract covers.
 3. **`runtime`:** `kind` is required and one of `local`, `slurm`, `mpi`, or `other`; `nodes` and `ranks` are positive integers, `walltime` is a string, and `modules` is a list of strings.
-4. **`artifacts`:** Each entry needs `path`; `format` is a string, `expected_dimensions` maps names to non-negative integers, `expected_attributes` maps names to strings, `numerical_tolerances` holds `relative`, `absolute` (finite non-negative numbers), and `ulp` (non-negative integer), and `preserve` is a boolean. `preserve` is a project convention for cleanup workflows; Clio's built-in protected-artifact guard is separate and is driven by live `protect_path` effects, not by this field.
+4. **`artifacts`:** Each entry needs `path`; `format` is a string, `expected_dimensions` maps names to non-negative integers, `expected_attributes` maps names to strings, `numerical_tolerances` holds `relative`, `absolute` (finite non-negative numbers), and `ulp` (non-negative integer at most 9007199254740991), and `preserve` is a boolean. `preserve` is a project convention for cleanup workflows; Clio's built-in protected-artifact guard is separate and is driven by live `protect_path` effects, not by this field.
 5. **`validators`:** A list of command strings a verifier should satisfy. They remain prose until the project declares matching `verifiers.yaml` entries.
 6. **`notes`:** Free text.
 
@@ -87,9 +87,29 @@ Comparing floating-point values in scientific computations must accommodate roun
 | **`absolute`** | $|val - ref| \le absolute$ | Additive difference check. Used when reference value is close to `0`. |
 | **`ulp`** | $StepsBetween(val, ref) \le ulp$ | Unit in the Last Place. Measures floating-point representation steps. |
 
-Tolerances become executable through a `kind: numeric-compare` entry in `.clio-coder/verifiers.yaml` (catalog version 2). The entry's `command` prints a JSON object of `string -> number | number[]` on stdout, `reference` names a repository-relative JSON file of the same shape, and `tolerance` names at least one of `relative`, `absolute`, or `ulp`. A value passes only when it satisfies every tolerance given; a key missing on either side fails with the key named, arrays compare elementwise and fail on length mismatch, and any `NaN` or infinity fails. The report lists each key's worst deviation and which tolerance it failed, and it is recorded on the `verify` result and on the host-verification check of a dispatch receipt. Clio applies no default tolerance: the catalog entry states it. `clio-coder verifiers author` proposes one such entry for every contract artifact that declares `numerical_tolerances`, with the command left for the operator to fill, so nothing runs until the operator confirms an exact argv. A `kind: perf-budget` entry judges the command's wall time the same way against a `budget` or a recorded baseline; see [Tool usage](../guide/tool-usage.md#project-verifier-catalog).
+Tolerances become executable through a `kind: numeric-compare` entry in `.clio-coder/verifiers.yaml` (catalog version 2). The entry's `command` prints a JSON object of `string -> number | number[]` on stdout, `reference` names a repository-relative JSON file of the same shape, and `tolerance` names at least one of `relative`, `absolute`, or `ulp`. The catalog's `tolerance.combine` is `all` (default) or `any`: each value must satisfy all configured bounds or at least one. This is not an additive absolute-plus-relative formula. A key missing on either side fails, and arrays compare elementwise with length mismatches failing. `tolerance.nonFinite` is `fail` (default) or `match`; matching allows NaN paired with NaN and same-signed infinities. `ulp` is capped at `Number.MAX_SAFE_INTEGER` (9007199254740991). Relative deviation against zero is zero for equality and undefined otherwise; an absolute bound under `combine: any` can admit near-zero values. The report lists each key's worst deviation and which tolerance it failed, and it is recorded on the `verify` result and on the host-verification check of a dispatch receipt. Clio applies no default tolerance: the catalog entry states it. `clio-coder verifiers author` proposes one such entry for every contract artifact that declares `numerical_tolerances`, with the command left for the operator to fill, so nothing runs until the operator confirms an exact argv. A `kind: perf-budget` entry judges the command's wall time the same way against a `budget` or a recorded baseline; see [Tool usage](../guide/tool-usage.md#project-verifier-catalog).
 
 ---
+
+## Inspectable verification evidence
+
+Numeric reports include effective `combine`, `nonFinite`, a readable `rule`, per-key worst deviations and held/violated bounds, plus reference source/path/hash/bytes and actual extracted-payload hash/bytes. Non-finite report fields serialize as `"NaN"`, `"Infinity"`, and `"-Infinity"` rather than null. Input still follows the numeric JSON parser; those report strings do not authorize strings in numeric payloads. Judged output and numeric reference/baseline files have a 32 MiB ceiling. A capped, aborted, timed-out, or failed execution cannot be judged from partial output. Numeric payloads also cap keys at 4096 and elements at 1000000. These are capture/parser bounds, not claims that peak process memory equals 32 MiB.
+
+`judgement.execution` records `succeeded`, `failed`, `timed-out`, `aborted`, or `output-capped`. `judgement.validation` records `passed`, `failed`, `exit-code` for an ordinary command, or `not-run`. `judgement.scientificValidity` always says `"not established by this check"`. Direct verify and host-declared dispatch verification retain these distinctions and reference provenance. Passing a declared comparison cannot establish that its reference, units, model, or sampling design is correct.
+
+`clio-coder verifiers baseline <id>` writes version-2 performance baselines after a clean run, recording `wallTimeMs`, `check`, `recordedAt`, and `environment`: hostname, platform, arch, CPU model/count, total memory bytes, and Node version. Version-1 baselines remain readable without environment metadata. A performance report records baseline path/hash/bytes and `environment` with baseline/current records and `differing` field names. Environment differences are informational; the declared wall-time budget still decides the pass. A single baseline measurement is not a statistical performance campaign.
+
+The executable tolerance example is:
+
+```yaml
+tolerance:
+  absolute: 1.0e-9
+  relative: 1.0e-6
+  combine: any
+  nonFinite: fail
+```
+
+`combine` and `nonFinite` belong to the version-2 executable verifier catalog. They are not additional fields in version-1 advisory `artifacts[].numerical_tolerances`.
 
 ## Common Scientific Artifact Families
 
