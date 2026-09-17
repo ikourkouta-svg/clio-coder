@@ -114,6 +114,23 @@ The complete root suite then passed on Node 22.22.3 at `b0db77a1`: 2754 tests, 2
 
 Qwopus is resolved by measurement: the gateway `/v1/model/info` row for `mini/qwopus3.8-27b-dense-q6` publishes `supports_function_calling: true`, and two real headless turns on that route called `context` and `read` and returned the exact file lines. The earlier warning came from Clio resolving capabilities before any probe. No persistent route or capability override was made.
 
+## Harness fixes from the live WTF-P session, 2026-09-17
+
+A real TUI session on local models (orchestrator `mini/qwopus3.8-27b-dense-q6`, CiteNexus over MCP, WTF-P skills) exposed these after the table above. Each defect was reproduced first and each fix has one regression that fails on the prior source. They supersede every earlier qualification.
+
+| Commit | Repair |
+| --- | --- |
+| b770d3e4 | The dispatch refusal names write-root confinement when it removed a required worker tool. |
+| 17fe4f59 | A skill load made inside a parallel tool batch verifies, so compaction can cut. |
+| 6fb50694, 88a4bffa | A skill without tool narrowing persists a known selection. The regression drives a real headless turn and reads the ledger. |
+| 7250fba9 | The user turn records the typed input as `displayText`; the session picker and replay prefer it. `operatorText` keeps the expansion because compaction reasserts it to the model. |
+| 17348cad | Collapsed bash rows and tool result text are sanitized to one terminal row per line. A raw newline or cursor sequence shifted every row below and left residue over the composer border. |
+| a38d54a9 | One MCP result is bounded to 16 KiB of model context with offload. The declared 600000 byte policy left only the 64 KiB session cap. |
+| be998db9 | `config inspect` names an ignored project settings layer under the Settings header. The layer itself is trust gated by design (`config trust settings --hash`). |
+| c755c39d | `chat.retry.firstTokenStallMs` (default 600000) governs the wait for a first token; `streamStallMs` governs mid-stream silence and re-arms at the first delta. Operator approved this design. |
+
+The MCP approval question is settled by the audit log, not by a code change. After the operator denied `apr-186d37f1-10`, requests `-11` and `-12` (`get-citation`, action class unknown) each parked and were granted with `decidedBy: operator` 4.4 s and 1.2 s later. There is no approval memory: grants are one-shot by request id and a denial cancels only its own call. The gate was not skipped. The operator most likely never saw a legible card, which the row-shift defect explains. The operator declined an arming delay on Enter.
+
 ## Known remaining issues
 
 1. The error-body restoration covers the OpenAI-compatible engine path only. The openai-responses, Azure, Codex, Mistral, Google and Bedrock adapters keep the upstream 4000-character cap; Google and Bedrock reject a custom fetch.
