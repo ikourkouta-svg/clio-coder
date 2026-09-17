@@ -51,12 +51,12 @@ clio-coder doctor
 
 Doctor probes each node over its real SSH channel: reachability, a
 version-matched `clio-coder` on the remote path, path parity for the project root,
-and a writable remote state dir. Those rows are read-only diagnostics: the
-current command does not create or refresh `fleet-preflight.json`, so it does
-not make a passing node dispatch-eligible. Placement can still consume an
-existing preflight record, but admission fails closed when that record is
-missing or stale after a host, project, or version change. There is currently
-no mutating doctor command that refreshes it.
+and a writable remote state dir. Those rows are read-only diagnostics: plain
+`clio-coder doctor` does not create or refresh `fleet-preflight.json`. Run
+`clio-coder doctor --fix` to record passing preflight results into
+`fleet-preflight.json` and make verified nodes dispatch-eligible. Placement can
+still consume an existing preflight record, but admission fails closed when that
+record is missing or stale after a host, project, or version change.
 
 Confirm the durable view:
 
