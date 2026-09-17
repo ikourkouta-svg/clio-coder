@@ -62,3 +62,45 @@ Final precision validation passed 60 affected tests on Node 24.20.0, plus two ra
 Before these fixes, release:preflight exited 1 with: `Qualified artifact or current package bytes changed. Run pnpm run ci:release.` The retained candidate tarball still matched the old receipt; ignored package/build bytes had changed during the demo. Neither that receipt nor the old development results qualify these new commits. Final exact-candidate qualification runs after the closeout commits; its external receipt is authoritative. The full development suite is not repeated for these bounded closeout changes; affected regressions and the complete qualification gate provide the new validation. Live TUI testing is separate evidence and is not claimed complete here.
 
 Closeout briefs, before/after logs, both failed and passing independent reviews, and the demo backup live at `/tmp/clio-v049-closeout-20260916-175749`. Key reports are `astra-review-fix-report.md`, `closure-review-report.md`, `precision-fix-report.md`, and `precision-review-report.md`. Gate output is recorded alongside them. No remote push, tag, GitHub release, or npm publication is authorized or performed.
+
+
+## Operator-requested TUI iteration, 2026-09-16
+
+The operator reopened work after the qualified `1b033d83` closeout and requested live dogfooding and human ergonomics improvements. The coordinator used medium-effort Codex workers in a separate Herdr tab, independent headless Astra reviews, and the actual Clio TUI beside the coordinator. The frontend-design skill informed a restrained terminal workbench design using existing semantic tokens. The prior qualified candidate remains identifiable by its commit; it does not qualify this new source.
+
+R landed as `236e92a5`, S as `c175855b`, and T as `46a113d9`. U documentation passed independent standards/specification review and accompanies this record. Every source slice passed independent closure before its commit. Source and documentation ownership have returned. Exact qualification of the resulting clean candidate is established only by the external source-bound receipt below, after this prequalification checkpoint is committed.
+
+| Gate | Result and retained evidence |
+| --- | --- |
+| Frozen install after the additive Input patch | PASS, exit 0, 1.920 s. `gate-install.json`. Only the existing patch hash and its references changed; R2 also independently applied the patch to integrity-verified pristine pi-tui 0.85.1 and compared all patched files. |
+| Intermediate CI | PASS, exit 0, 159.084 s. 649 root tests passed, 1 Windows-only skip, 24 web tests passed. `gate-ci.json`. This precedes S2/T2 review repairs and is not the final gate. |
+| Final `pnpm run ci` | PASS, exit 0, 158.534 s. Typecheck, lint, all hygiene checks, build, 663 root tests and 24 web tests passed; 1 Windows-only skip. `gate-ci-final.json`. |
+| Final `pnpm run test:full` | PASS, exit 0, 117.481 s. 2526 total, 2525 passed, 1 Windows-only skip, 0 failed. `gate-full.json`. |
+| Independent R2 closure | PASS. 46 focused tests, customized keybindings, atomic undo/kill ring, hostile provenance, and pristine patch applicability. |
+| Independent S2 closure | PASS. 83 Library tests, 16 keyboard-routing tests, semantic colors, search precedence, correct package/entry/member footer units, and 36 production frames. |
+| Independent T2 closure | PASS. 147 focused tests, real presentation/editor pipeline at 40/44/60/92/120 columns, hostile identity/path handling, current activity, and honest compact trust disclosure. |
+| Independent U documentation review | PASS on standards and specification. No remaining findings; 16 local link targets verified. |
+
+Lint retains its existing two warnings and two informational findings; the web build retains its non-fatal large-chunk warning. No checks were suppressed. The single platform-specific skip does not establish Windows behavior, and no macOS execution was performed.
+
+### Failed attempts and their closure
+
+R's initial independent review failed because Ctrl+U synthesized a configurable Ctrl+E movement. With line-end remapped to End, the reset left `filter: DEMO-REPORT` unchanged. R2 adds one semantic Input clear operation and verifies full text/cursor restoration, yank, replacement/undo, and empty-clear behavior. Its independent closure passed.
+
+T's initial independent review failed because the production model label was abbreviated before the composer received it, causing long-placement models to collide, and because raw grapheme segmentation could expose an OSC title payload after truncation. The independently reproduced output included `xxxxxxxxxxx…ODEL_NAME\u0007-q6`. T2 passes raw structured identity to rendering and sanitizes before measuring or segmenting. Production-path and hostile-text regressions passed independent closure.
+
+S initially passed with three nits. S2 preserves trusted state colors while sanitizing external fields, qualifies notice-return instructions by search focus, and supplies explicit count units to the shared footer without changing its other callers. All three findings passed closure. Intermediate test-fixture typing and assertion failures were corrected rather than suppressed; their full outputs remain in the worker reports and scratch logs. Both integrated CI attempts and the final full suite exited 0.
+
+### Live outcomes and limits
+
+The actual Herdr TUI was exercised at approximately 43/44 columns and at wide split-pane sizes. `/view DEMO-REPORT` now shows 1 of 174 resources with a visible basename, Enter shows the report, and `i` shows full recorded path/session/turn provenance. Ctrl+A followed by Ctrl+U clears to 174 of 174; one Ctrl+underscore undo restores the query and its single result. A Unicode two-line draft survived Library open/close. The final 43-column composer retains the model family, q6 suffix and low thinking level; the original pane ratio was restored after inspection.
+
+Library clearly separates one provider package from eight notices, and Installed exposes eight core agents and three fleets with availability. Notice return preserves browsing context. Fleet selection without a required task variable honestly failed preflight without dispatch. Supplying the task opened a four-wave route/policy/budget approval preview; Escape cancelled it. Actual fleet execution was intentionally not performed.
+
+Two real read-only Qwopus debugger runs completed and reported the exact first line and two-line count of notes.txt. Execution success and absence of validation remained distinct. The later large-log tail task FAILED overall: attempts `x59nhzrg0gkh` and `217gknt4vp8k` failed with HTTP 500 `proxy error: Could not establish connection`; configured retries remained on the same route. Attempt `2ldf0qsfzoh7` failed with `result contract failed after 2 bounded repair rounds: Debugger result payload failed: result must be valid JSON`. A healthy gateway target probe does not establish health of that model backend. No passing outcome is inferred from the partial read calls.
+
+An OpenRouter one-run read-only smoke on `nex-agi/nex-n2.5-pro:free` succeeded in 3.987 s with `OPENROUTER_READY`. Its startup diagnostic separately reported that the saved Qwopus worker route advertises no tool support; this metadata warning has not been established as the cause of the HTTP 500 failures. Credentials remain outside the repository and are not reproduced in the records. Further live session results are appended to the external dogfood record, without changing the qualified source.
+
+Verbose provider-error/retry duplication, the raw JSON tail of some structured completed worker answers, narrow session-picker identity, and broader dashboard/launchpad composition remain explicit next-iteration work. This pass did not redesign provider retry policy, model result contracts, global state, or fleet execution. No remote push, tag, GitHub release or npm publication was performed.
+
+All worker/reviewer reports, raw gate outputs, render captures, actual-pane captures and live provider outcomes are under `/tmp/clio-v049-tui-20260917-002416/`. Exact-candidate status is governed by `/home/akougkas/.cache/clio-coder/qualification/f2c0deba876681e1/qualification.json`, whose head and digest must match the clean candidate. Its receipt can record qualification without modifying the source it authenticates.

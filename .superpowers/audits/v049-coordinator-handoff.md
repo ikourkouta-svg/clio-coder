@@ -1,5 +1,14 @@
 # v0.4.9 coordinator handoff
 
+## TUI iteration checkpoint (2026-09-16)
+
+The operator reopened work for live dogfooding and TUI ergonomics. R (`236e92a5`), S (`c175855b`) and T (`46a113d9`) are committed after independent closure review. U's design/guide/changelog integration passed independent review and accompanies this audit checkpoint. Final CI passed with 663 root tests, one Windows-only skip and 24 web tests. The full suite passed with 2525 tests and one Windows-only skip. See v049-release-gates.md for the failed initial reviews, repairs, actual live outcomes and deliberately deferred surfaces.
+
+The latest large-log Qwopus worker demo failed after two backend connection failures and a final invalid result contract; this is not counted as a pass. Two earlier fixture workers passed. OpenRouter text smoke succeeded using the existing configured free route. The coordinator is finishing live checks using explicit session selection, without hiding route changes. All source owners have returned their files. Remaining immediate work is clean-candidate frozen install and ci:release, then final preflight and the two-pane live workspace. Exact qualification is authoritative only through the matching external source-bound receipt; this committed paragraph is a prequalification checkpoint.
+
+Current scratchpad: `/tmp/clio-v049-tui-20260917-002416/`. Keep the coordinator/Clio pair in wR:t17; close only the temporary TUI worker tab when its work is finished. Other project tabs are unrelated. No remote publication is authorized.
+
+
 ## Fresh closeout status (2026-09-16)
 
 The operator-authorized /usage demo was removed after a backup. A fresh Astra XHigh review found and repaired MCP result validation, structured-only numeric preservation, and overlapping server ownership; independent precision closure passed and P landed as `dab9abc4`. Q's measured Qwopus reasoning vocabulary and qualified provenance wording also passed independent review and land in the commit containing this update. The successful current-source live probe explicitly sent xhigh on the same route that previously failed with downstream high rejection. OpenRouter user credentials and an explicitly tested alternate free route were connected outside the repository.
