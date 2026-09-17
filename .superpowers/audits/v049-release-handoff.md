@@ -97,11 +97,24 @@ Optional complete root investigation, only before qualification:
 node --import tsx --import ./tests/harness/tmp-root.ts --test --test-concurrency=4 tests/contracts/*.test.ts tests/extended/*.test.ts tests/smoke/*.test.ts tests/extended-smoke/*.test.ts
 ```
 
+## Limitation fixes after the ec331b19 qualification, 2026-09-17
+
+Claude Code qualified `ec331b1937d44bc3c462bf277bbccfcd5f4d8127` (tarball SHA-256 `ea707feef63c29b6c6967abdc9faa28049a8ba790ab7bd92b7b1b82bc2dc04cb`), then the operator redirected work to the known limitations before release. These commits supersede that candidate and require new qualification. The changelog is redated 2026-09-17 to match the cut, following the 0.4.7 and 0.4.8 precedent. Evidence is under `qualification-ec331b19/` and `fixes-b0db77a1/` in the external archive.
+
+| Commit | Repair |
+| --- | --- |
+| 6b05097a | Version-3 resume reopens and restamps in one atomic metadata publication. The regression test fails on the old source with two publications. |
+| 0085d8cb | Lint reports zero warnings and zero infos. The web entry chunk drops from 582 kB to 234 kB; the warning limit covers only Mermaid's 662 kB upstream lazy chunk. |
+| 6494cef5 | OpenAI-compatible routes restore the error body pi-ai truncates at 4000 characters, only on an exact prefix and length match, bounded at 65536 characters. Route advice stays visible for long diagnostics. |
+| b0db77a1 | The boot tool-support warning no longer fires for never-probed targets. |
+
+The complete root suite then passed on Node 22.22.3 at `b0db77a1`: 2754 tests, 2753 pass, zero failures or cancellations, one Windows-only skip, 349.5 s, four concurrent files. This replaces the earlier targeted-only Node 22 coverage.
+
+Qwopus is resolved by measurement: the gateway `/v1/model/info` row for `mini/qwopus3.8-27b-dense-q6` publishes `supports_function_calling: true`, and two real headless turns on that route called `context` and `read` and returned the exact file lines. The earlier warning came from Clio resolving capabilities before any probe. No persistent route or capability override was made.
+
 ## Known remaining issues
 
-1. Existing version-3 session restamping publishes metadata twice. Injected failure on the second write can leave a refused candidate marked open/version 3; ledger data remains intact and retry reaches version 4. Baseline and current behavior match. Any repair needs its own reviewed lifecycle transaction.
-2. Qwopus capability metadata versus observed tool support remains unresolved. Gateway health/model listing does not prove that model's tool support. Do not silently override routes or persistent capabilities.
-3. The upstream SDK caps some diagnostics around 4000 characters. Clio retains the complete available redacted evidence, not discarded upstream bytes. Mandatory discovery overhead remains a binding evaluated policy, not an unfinished prompt-removal task.
-4. Windows/macOS, actual SSH/hosted fleets, physical power loss/network filesystems and a broad provider matrix remain untested in this session. Linux/Chrome qualification does not establish those results.
+1. The error-body restoration covers the OpenAI-compatible engine path only. The openai-responses, Azure, Codex, Mistral, Google and Bedrock adapters keep the upstream 4000-character cap; Google and Bedrock reject a custom fetch.
+2. Windows/macOS, actual SSH/hosted fleets, physical power loss/network filesystems and a broad provider matrix remain untested. An SSH fleet check needs a Clio install on a homelab node and a persistent `fleet.nodes` entry, which requires operator approval. Mandatory discovery overhead remains a binding evaluated policy.
 
 No newly introduced unresolved blocker was identified in the accepted slices. Keep these limitations visible, and follow new evidence if qualification identifies a release blocker.
