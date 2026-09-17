@@ -1,5 +1,11 @@
 # v0.4.9 coordinator handoff
 
+## Release-prep closeout, 2026-09-17
+
+The operator finished trying the application and requested local consolidation, removal of disposable demonstrations and a Claude Code release handoff. Start with [v049-release-handoff.md](v049-release-handoff.md); its current instructions supersede the historical pending-work and pane instructions below. Product maintenance is committed on `v049`, version 0.4.9. No source changes remain pending. All maintenance workers and the demo TUI are stopped; unrelated panes and operator state are preserved. Do not restart Codex/Astra workers: the operator explicitly stopped them to conserve usage.
+
+Reports and gate evidence were archived outside the repository at `/home/akougkas/.local/state/clio-coder/maintenance/v049-20260917/`. Session-owned temporary roots, fake providers, copied credential homes and demo workspaces were removed after checking process ownership. Historical scratch paths below are provenance; the release handoff maps the retained evidence. The last passing qualification covers `0ba61280fc860ebcb158daf3b757969046d98e65`, not this later documentation commit. Claude must finish any remaining candidate documentation and qualify the resulting clean HEAD. No push, tag, GitHub release or npm publication is authorized.
+
 ## TUI iteration checkpoint (2026-09-16)
 
 The operator reopened work for live dogfooding and TUI ergonomics. R (`236e92a5`), S (`c175855b`) and T (`46a113d9`) are committed after independent closure review. U's design/guide/changelog integration passed independent review and accompanies this audit checkpoint. Final CI passed with 663 root tests, one Windows-only skip and 24 web tests. The full suite passed with 2525 tests and one Windows-only skip. See v049-release-gates.md for the failed initial reviews, repairs, actual live outcomes and deliberately deferred surfaces.

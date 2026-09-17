@@ -496,3 +496,5 @@ pnpm run ci                                                              # what 
 ```
 
 Maintenance closeout: the operator explicitly stopped other Astras to conserve usage. The coordinator completed principal closure and documentation review. All product slices are committed; complete development validation is 2750 pass, one Windows-only skip, zero failures, using the same full file set with four concurrent files and short disk-backed scratch. See `v049-maintenance-20260917.md` and the external source-bound qualification receipt. No new version or publication is authorized.
+
+Release-prep transition, 2026-09-17: all product slices remain committed and verified to the limits above. The operator tried the final TUI and requested cleanup and a Claude Code handoff. Session-owned demo artifacts and temporary roots were removed; reports were archived externally. See `v049-release-handoff.md` for current ownership, evidence locations and remaining gates. The closeout documentation commit requires fresh qualification; the previous `0ba61280` receipt is historical. Do not restart maintenance agents or follow superseded pane assignments.

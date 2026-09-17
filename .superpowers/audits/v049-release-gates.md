@@ -1,5 +1,13 @@
 # v0.4.9 development gate evidence
 
+## Current release-prep status, 2026-09-17
+
+The operator has tried the final application and requested a Claude Code release handoff. See [v049-release-handoff.md](v049-release-handoff.md). The last qualification passed at `0ba61280fc860ebcb158daf3b757969046d98e65` in 296.883 s, followed by a passing preflight in 7.630 s. The qualified tarball SHA-256 was `ea707feef63c29b6c6967abdc9faa28049a8ba790ab7bd92b7b1b82bc2dc04cb`. These are historical results; the later closeout documentation commit requires new qualification of clean HEAD.
+
+Retained logs, reports and captures now live at `/home/akougkas/.local/state/clio-coder/maintenance/v049-20260917/`, with maintenance, tui-iteration and previous-closeout subdirectories preserving their report filenames. Original `/tmp` paths in the records below are historical; the disposable roots and demo harnesses have been removed. The canonical qualification cache remains intact until the next qualification replaces it. No publication is authorized.
+
+## Historical development records
+
 Recorded by the successor coordinator on 2026-09-16 after the mandated development gates passed and before exact-candidate qualification. The version cut is authorized only after these gates. Remote push, tag creation, GitHub release, and npm publication are not authorized by this local release task.
 
 ## Completed development gates
