@@ -107,6 +107,8 @@ Claude Code qualified `ec331b1937d44bc3c462bf277bbccfcd5f4d8127` (tarball SHA-25
 | 0085d8cb | Lint reports zero warnings and zero infos. The web entry chunk drops from 582 kB to 234 kB; the warning limit covers only Mermaid's 662 kB upstream lazy chunk. |
 | 6494cef5 | OpenAI-compatible routes restore the error body pi-ai truncates at 4000 characters, only on an exact prefix and length match, bounded at 65536 characters. Route advice stays visible for long diagnostics. |
 | b0db77a1 | The boot tool-support warning no longer fires for never-probed targets. |
+| 48f611ad | Two safe-exec grace tests measure elapsed time with the monotonic clock after a WSL2 wall-clock step backwards failed one CI run. No assertion changed. |
+| (this commit) | `doctor --fix` records fleet preflight results again. Since `e848af89` (v0.4.1) nothing wrote `fleet-preflight.json`, so no SSH node could pass dispatch admission. Found by the first real SSH fleet run. |
 
 The complete root suite then passed on Node 22.22.3 at `b0db77a1`: 2754 tests, 2753 pass, zero failures or cancellations, one Windows-only skip, 349.5 s, four concurrent files. This replaces the earlier targeted-only Node 22 coverage.
 
@@ -115,6 +117,6 @@ Qwopus is resolved by measurement: the gateway `/v1/model/info` row for `mini/qw
 ## Known remaining issues
 
 1. The error-body restoration covers the OpenAI-compatible engine path only. The openai-responses, Azure, Codex, Mistral, Google and Bedrock adapters keep the upstream 4000-character cap; Google and Bedrock reject a custom fetch.
-2. Windows/macOS, actual SSH/hosted fleets, physical power loss/network filesystems and a broad provider matrix remain untested. An SSH fleet check needs a Clio install on a homelab node and a persistent `fleet.nodes` entry, which requires operator approval. Mandatory discovery overhead remains a binding evaluated policy.
+2. Windows/macOS, hosted fleets, physical power loss/network filesystems and a broad provider matrix remain untested. One real SSH fleet run passed at operator request: node `dragon` (Node 22.23.2, user-level npm install of this build), run `1jrvjhi0j4ck`, debugger recipe on `dynamo/qwen3.8-27b` through the gateway, outcome succeeded with a verified receipt and no stranded remote process. The operator settings gained a `dragon` node and a `dragon-ssh` profile; the prior file is `settings.yaml.bak-pre-dragon-20260917`. SSH cancellation, failover and multi-node placement were not exercised live. Mandatory discovery overhead remains a binding evaluated policy.
 
 No newly introduced unresolved blocker was identified in the accepted slices. Keep these limitations visible, and follow new evidence if qualification identifies a release blocker.
