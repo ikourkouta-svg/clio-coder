@@ -104,3 +104,14 @@ An OpenRouter one-run read-only smoke on `nex-agi/nex-n2.5-pro:free` succeeded i
 Verbose provider-error/retry duplication, the raw JSON tail of some structured completed worker answers, narrow session-picker identity, and broader dashboard/launchpad composition remain explicit next-iteration work. This pass did not redesign provider retry policy, model result contracts, global state, or fleet execution. No remote push, tag, GitHub release or npm publication was performed.
 
 All worker/reviewer reports, raw gate outputs, render captures, actual-pane captures and live provider outcomes are under `/tmp/clio-v049-tui-20260917-002416/`. Exact-candidate status is governed by `/home/akougkas/.cache/clio-coder/qualification/f2c0deba876681e1/qualification.json`, whose head and digest must match the clean candidate. Its receipt can record qualification without modifying the source it authenticates.
+
+
+## Sustained maintenance closeout, 2026-09-17
+
+The maintenance mandate supersedes an immediate version cut. Version remains 0.4.9 on local v049; no push, tag or publication. The starting clean source was 56a81065. Accepted source slices V through AE, principal closure after the operator stopped other Astras, all development failures and remaining limits are recorded in [the maintenance audit](v049-maintenance-20260917.md).
+
+Final development CI passed with 849 root tests, one Windows-only skip and 24 web tests (161.077 s). Principal closure passed 70 cases. The complete root file set passed with four concurrent files: 2750 pass, one Windows-only skip, zero failures/cancellations (320.763 s). This includes installed-package/Chrome, ACP/process lifecycle and scientific stress tests. Node22.22.3 targeted coverage includes 207 earlier cases and 50 final closure/prompt cases; these are not a full platform matrix.
+
+Earlier full runs failed from tmpfs exhaustion, a stale prompt-policy assertion, an overlong disk-backed Unix socket path, and Linux shutdown-fixture startup/process-disappearance races. Full logs are retained under /tmp/clio-v049-maintenance-20260917-100629/. No expectations, deadlines or functionality were removed. The final run uses a short private disk-backed temporary root and bounded file concurrency. See gate-final-full-bounded.json and report-principal-closure.md.
+
+All tracked candidate documentation precedes the final clean commit and frozen installation. Exact qualification is established only by /home/akougkas/.cache/clio-coder/qualification/f2c0deba876681e1/qualification.json and its retained candidate.tgz, whose source and artifact digest must match the unchanged candidate. The prior receipt does not cover these maintenance changes. This prequalification source record does not claim a future gate result. No source edits, rebuilds, repacks or full-suite reruns follow a successful qualification.
